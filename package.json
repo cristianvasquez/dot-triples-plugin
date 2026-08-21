@@ -19,13 +19,13 @@
   "dependencies": {
     "@rdfjs/serializer-turtle": "^1.1.5",
     "@rdfjs/to-ntriples": "^3.0.1",
-    "canonical-md": "link:../../../os/rdf/dot-triples/packages/canonical-md",
+    "canonical-md": "^0.1.0",
     "oxigraph": "0.5.0-beta.4",
     "rdf-ext": "^2.5.2",
     "sparql-http-client": "^3.0.1",
-    "sparql-md": "link:../../../os/rdf/dot-triples/packages/sparql-md",
+    "sparql-md": "^0.1.0",
     "sparqljs": "^3.7.3",
-    "triplifier-md": "link:../../../os/rdf/dot-triples/packages/triplifier-md"
+    "triplifier-md": "^0.1.0"
   },
   "devDependencies": {
     "@vitest/ui": "^2.1.9",
