@@ -1,7 +1,4 @@
-import {
-  pathToFileURL,
-  propertyFromUri,
-} from 'vault-triplifier'
+import { tokenFromURI } from 'canonical-md'
 
 /**
  * Get the display name from a file path
@@ -29,7 +26,8 @@ export function isFileUri (term) {
  * @param {Object} term - RDF term
  * @returns {boolean}
  */
-export function isPropertyUri (term) {
+export function isTokenUri (term) {
   return term?.termType === 'NamedNode' &&
-    propertyFromUri(term) !== null
+    term.value !== 'urn:token:_' &&
+    tokenFromURI(term) !== null
 }

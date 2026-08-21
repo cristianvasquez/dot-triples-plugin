@@ -54,7 +54,7 @@ describe('TriplifierService Architecture', () => {
 
     it('should triplify markdown content', async () => {
       const absolutePath = '/test/vault/test.md'
-      const content = '# Test Document\n\ntitle :: "Test Title"'
+      const content = '---\ntags: [example]\n---\n\n# Test Document\n\ntitle :: Test Title'
       
       const result = await service.triplify(absolutePath, content)
       
@@ -62,6 +62,21 @@ describe('TriplifierService Architecture', () => {
       expect(result.dataset).toBeDefined()
       expect(result.graphUri).toBeDefined() 
       expect(result.dataset.size).toBeGreaterThan(0)
+      expect(result.graphUri.value).toBe('file:///test/vault/test.md')
+
+      const quads = [...result.dataset]
+      expect(quads).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          subject: expect.objectContaining({ value: 'urn:name:test.md' }),
+          predicate: expect.objectContaining({ value: 'urn:token:tags' }),
+          object: expect.objectContaining({ value: 'example' }),
+        }),
+        expect.objectContaining({
+          subject: expect.objectContaining({ value: 'urn:name:test' }),
+          predicate: expect.objectContaining({ value: 'urn:token:title' }),
+          object: expect.objectContaining({ value: 'Test Title' }),
+        }),
+      ]))
     })
   })
 

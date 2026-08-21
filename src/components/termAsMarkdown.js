@@ -1,8 +1,7 @@
-import { nameFromUri, propertyFromUri, fileURLToPath } from 'vault-triplifier'
+import { fileURLToPath, nameFromURI, pathToFileURL, tokenFromURI } from 'canonical-md'
 import {
-  getNameFromPath, isFileUri, isPropertyUri,
+  getNameFromPath, isFileUri, isTokenUri,
 } from '../lib/uriUtils.js'
-import { pathToFileURL } from 'vault-triplifier'
 import { prefixes } from '../namespaces.js'
 
 function shrink (uriStr) {
@@ -18,14 +17,14 @@ function shrink (uriStr) {
 // TODO use Obsidian URLs when the vault is known
 // obsidian://open?vault=experiments&file=SomeNote
 function namedAsMarkdown (term, basePath) {
-  const name = nameFromUri(term)
+  const name = nameFromURI(term)
   if (name) {
     return `[[${name}]]`
   }
 
-  if (isPropertyUri(term)) {
-    const propertyLiteral = propertyFromUri(term)
-    return `\`${propertyLiteral}\``
+  if (isTokenUri(term)) {
+    const token = tokenFromURI(term)
+    return `\`${token}\``
   }
 
   if (isFileUri(term)) {

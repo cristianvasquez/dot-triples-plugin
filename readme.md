@@ -6,7 +6,7 @@ cross-vault and cross-repository querying through shared triplestores.
 ## What it does
 
 Your markdown files are indexed as RDF triples
-using [vault-triplifier](https://github.com/cristianvasquez/vault-triplifier) and stored in a triplestore. You can then:
+using [dot-triples](https://github.com/cristianvasquez/dot-triples) and stored in a triplestore. You can then:
 
 - **Run SPARQL queries** in `osg` code blocks within your notes
 - **View contextual panels** showing query results for the current file you're viewing
@@ -60,7 +60,7 @@ SPARQL queries will overwrite special tokens before querying
 
 - `__THIS__`: Current note name URI (`urn:name:NoteName`)
 - `__DOC__`: Current note file URI (`file:///absolute/path`)
-- `__property__`: Property placeholders (e.g., `__label__` → `<urn:property:label>`)
+- `__property__`: Token placeholders (e.g., `__label__` → `<urn:token:label>`)
 - `[[Note Name]]`: Converts to name URIs in queries
 
 ## Example queries
@@ -82,5 +82,15 @@ npm run build  # Production build
 npm test       # Run tests
 ```
 
+This branch links `canonical-md`, `triplifier-md`, and `sparql-md` from
+`/home/cvasquez/os/rdf/dot-triples`. The `triplifier-md` package root currently
+also exports Node stream helpers, so the Vite build keeps `node:stream` and
+`node:string_decoder` external for the Electron runtime. This makes the desktop
+plugin build work, but this dependency shape is not compatible with Obsidian
+Mobile until dot-triples provides a browser-only entry point.
+
+Query sugar is provided directly by the browser-safe `sparql-md/rewrite`
+subpath, keeping the plugin aligned with dot-triples' canonical rewrites.
+
 See [CLAUDE.md](./CLAUDE.md) for architecture details
-and [vault-triplifier](https://github.com/cristianvasquez/vault-triplifier) for RDF conversion examples.
+and [dot-triples](https://github.com/cristianvasquez/dot-triples) for the canonical Markdown/RDF document model.

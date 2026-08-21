@@ -1,6 +1,10 @@
 import { Plugin, Notice } from 'obsidian'
 import { renderSparqlView } from './views/SparqlView.js'
-import { DEFAULT_SETTINGS, SparqlSettingTab } from './lib/settings.js'
+import {
+  DEFAULT_SETTINGS,
+  migrateSettings,
+  SparqlSettingTab,
+} from './lib/settings.js'
 import { Controller } from './lib/Controller.js'
 import { CommandManager } from './lib/commands.js'
 import { CurrentFileView, SIDE_VIEW_ID } from './views/CurrentFileView.js'
@@ -77,11 +81,16 @@ export default class SparqlPlugin extends Plugin {
   }
 
   async loadSettings () {
-    this.settings = Object.assign(
+    const loadedSettings = Object.assign(
       {},
       DEFAULT_SETTINGS,
       await this.loadData(),
     )
+    this.settings = migrateSettings(loadedSettings)
+
+    if (this.settings !== loadedSettings) {
+      await this.saveData(this.settings)
+    }
   }
 
   async saveSettings () {
@@ -102,4 +111,3 @@ export default class SparqlPlugin extends Plugin {
 
 
 }
-

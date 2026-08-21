@@ -1,62 +1,17 @@
-// src/lib/templates.js
+import { pathToFileURL } from 'canonical-md'
 import {
-  nameToUri,
-  pathToFileURL,
-  propertyToUri,
-} from 'vault-triplifier'
-import { getNameFromPath } from './uriUtils.js'
+  replaceInternalLinks,
+  replacePropertyPlaceholders,
+  rewriteQuery,
+} from 'sparql-md/rewrite'
 
-const THIS = '__THIS__' // The URI of the main concept corresponding to the active file
-const DOC = '__DOC__' // The URI corresponding to the active file
 const DATE = '__DATE__' // The current date
-const REPO = '__REPO__' // The URI corresponding to the active repository
-
-/**
- * Replace [[link]] patterns with URIs
- */
-export function replaceInternalLinks (text, replacer) {
-  return text.replace(/\[\[([^\]]+)\]\]/g, (match, linkText) => {
-    return replacer(linkText)
-  })
-}
-
-/**
- * Replace property placeholders like __label__, __type__, __some property__, __prefixed:value__ etc.
- */
-export function replacePropertyPlaceholders (text) {
-  return text.replace(/__([a-zA-Z][a-zA-Z0-9_\s:]*?)__/g, (match, property) => {
-    // Convert property name to URI using vault-triplifier
-    const propUri = propertyToUri(property.trim())
-    return `<${propUri}>`
-  })
-}
 
 /**
  * Replace all template variables in text (both markdown and SPARQL)
  */
 function replaceAllTokens (text, absolutePath, activeFile, repoPath) {
-  let processed = text
-
-  if (absolutePath) {
-    // Replace __THIS__ with name URI
-    if (processed.includes(THIS)) {
-      const name = getNameFromPath(absolutePath)
-      const nameUri = nameToUri(name)
-      processed = processed.replaceAll(THIS, `<${nameUri}>`)
-    }
-
-    // Replace __DOC__ with file URI
-    if (processed.includes(DOC)) {
-      const fileUri = pathToFileURL(absolutePath)
-      processed = processed.replaceAll(DOC, `<${fileUri.value}>`)
-    }
-  }
-
-  // Replace __REPO__ with repository URI
-  if (processed.includes(REPO) && repoPath) {
-    const repoUri = pathToFileURL(repoPath)
-    processed = processed.replaceAll(REPO, `<${repoUri.value}>`)
-  }
+  let processed = String(text)
 
   // Replace __DATE__ with current timestamp
   if (processed.includes(DATE)) {
@@ -64,16 +19,10 @@ function replaceAllTokens (text, absolutePath, activeFile, repoPath) {
     processed = processed.replaceAll(DATE, currentTime)
   }
 
-  // Replace property placeholders like __label__, __type__, etc.
-  processed = replacePropertyPlaceholders(processed)
-
-  // Replace [[WikiLinks]] with name URIs
-  processed = replaceInternalLinks(processed, (linkText) => {
-    const nameUri = nameToUri(linkText.trim())
-    return `<${nameUri}>`
+  return rewriteQuery(processed, {
+    filePath: absolutePath,
+    repoUri: repoPath ? pathToFileURL(repoPath).value : undefined,
   })
-
-  return processed
 }
 
 /**
@@ -154,6 +103,8 @@ SELECT * WHERE {
 }
 
 export {
+  replaceInternalLinks,
+  replacePropertyPlaceholders,
   replaceAllTokens,
   removeFrontmatter,
   getOSGQueryTemplate,

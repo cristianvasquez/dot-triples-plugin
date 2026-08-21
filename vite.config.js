@@ -20,7 +20,9 @@ export default defineConfig({
       fileName: () => 'main.js'
     },
     rollupOptions: {
-      external: ['obsidian'],
+      // triplifier-md exposes optional Node stream transforms from its root.
+      // Keep those built-ins as runtime requires for Obsidian Desktop/Electron.
+      external: ['obsidian', 'node:stream', 'node:string_decoder'],
       output: {
         banner,
         exports: 'named',

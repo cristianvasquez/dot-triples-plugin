@@ -12,29 +12,29 @@ describe('Template System', () => {
     it('should replace simple property placeholders', () => {
       const input = 'SELECT * WHERE { ?s __label__ ?o }'
       const result = replacePropertyPlaceholders(input)
-      expect(result).toContain('<urn:property:label>')
+      expect(result).toContain('<urn:token:label>')
       expect(result).not.toContain('__label__')
     })
 
     it('should replace property placeholders with spaces', () => {
       const input = 'SELECT * WHERE { ?s __generated at time__ ?o }'
       const result = replacePropertyPlaceholders(input)
-      expect(result).toContain('<urn:property:generated%20at%20time>')
+      expect(result).toContain('<urn:token:generated%20at%20time>')
       expect(result).not.toContain('__generated at time__')
     })
 
     it('should replace prefixed property placeholders', () => {
       const input = 'SELECT * WHERE { ?s __rdfs:label__ ?o }'
       const result = replacePropertyPlaceholders(input)
-      expect(result).toContain('<urn:property:rdfs:label>')
+      expect(result).toContain('<urn:token:rdfs%3Alabel>')
       expect(result).not.toContain('__rdfs:label__')
     })
 
     it('should handle multiple property placeholders', () => {
       const input = '?s __type__ ?type . ?s __label__ ?name'
       const result = replacePropertyPlaceholders(input)
-      expect(result).toContain('<urn:property:type>')
-      expect(result).toContain('<urn:property:label>')
+      expect(result).toContain('<urn:token:type>')
+      expect(result).toContain('<urn:token:label>')
     })
 
     it('should not affect text without placeholders', () => {
@@ -99,7 +99,7 @@ Content here`
       const result = replaceAllTokens(input, '/path/to/TestFile.md', null)
       
       expect(result).toContain('<urn:name:TestFile>')
-      expect(result).toContain('<urn:property:label>')
+      expect(result).toContain('<urn:token:label>')
       expect(result).toContain('<urn:name:LinkedNote>')
       expect(result).not.toContain('__DATE__')
     })
@@ -108,8 +108,8 @@ Content here`
       const input = '__rdfs:label__ __owl:sameAs__'
       const result = replaceAllTokens(input, '/path/to/file.md', null)
       
-      expect(result).toContain('<urn:property:rdfs:label>')
-      expect(result).toContain('<urn:property:owl:sameAs>')
+      expect(result).toContain('<urn:token:rdfs%3Alabel>')
+      expect(result).toContain('<urn:token:owl%3AsameAs>')
     })
   })
 
@@ -146,7 +146,7 @@ Content here`
       
       expect(result).toContain('<file:///path/to/TestFile.md>')
       expect(result).toContain('<urn:name:TestFile>')
-      expect(result).toContain('<urn:property:label>')
+      expect(result).toContain('<urn:token:label>')
       expect(result).toContain('<urn:name:LinkedNote>')
     })
 
@@ -154,7 +154,7 @@ Content here`
       const sparql = 'SELECT * WHERE { ?s __created_at__ "__DATE__" }'
       const result = replaceAllTokens(sparql, '/path/to/file.md', null, null)
       
-      expect(result).toContain('<urn:property:created_at>')
+      expect(result).toContain('<urn:token:created_at>')
       expect(result).not.toContain('__DATE__')
     })
 
@@ -162,8 +162,8 @@ Content here`
       const sparql = 'SELECT * WHERE { ?s __rdfs:label__ __owl:sameAs__ }'
       const result = replaceAllTokens(sparql, '/path/to/file.md', null, null)
       
-      expect(result).toContain('<urn:property:rdfs:label>')
-      expect(result).toContain('<urn:property:owl:sameAs>')
+      expect(result).toContain('<urn:token:rdfs%3Alabel>')
+      expect(result).toContain('<urn:token:owl%3AsameAs>')
     })
 
     it('should work without file path', () => {
@@ -171,7 +171,7 @@ Content here`
       const result = replaceAllTokens(sparql, null, null, null)
       
       expect(result).toContain('<urn:name:MyNote>')
-      expect(result).toContain('<urn:property:label>')
+      expect(result).toContain('<urn:token:label>')
       expect(result).not.toContain('__THIS__')
       expect(result).not.toContain('__DOC__')
     })

@@ -1,4 +1,4 @@
-import { pathToFileURL } from 'vault-triplifier'
+import { pathToFileURL } from 'canonical-md'
 import { TriplifierService } from './TriplifierService.js'
 
 /**

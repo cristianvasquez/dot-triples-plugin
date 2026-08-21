@@ -1,4 +1,4 @@
-import { pathToFileURL } from 'vault-triplifier'
+import { pathToFileURL } from 'canonical-md'
 
 function getBasePath (app) {
   return app.vault.adapter?.basePath || app.vault.adapter?.getBasePath?.() || ''

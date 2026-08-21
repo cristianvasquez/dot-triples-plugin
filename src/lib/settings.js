@@ -1,5 +1,4 @@
 import { PluginSettingTab, Setting, Notice } from 'obsidian'
-import { MarkdownTriplifierOptions } from 'vault-triplifier'
 
 export const DEFAULT_SETTINGS = {
   mode: 'embedded', // 'embedded' or 'external' - triplestore mode
@@ -13,61 +12,36 @@ export const DEFAULT_SETTINGS = {
   allowUpdate: false,
   osgPath: '/home/cvasquez/.local/share/pnpm/osg',
   embeddedSettings: {
-    triplifierOptions: {
-      partitionBy: [
-        'headers-h2-h3',
-      ],
-      includeLabelsFor: [
-        'documents',
-        'sections',
-        'anchors',
-      ],
-      includeSelectors: false,
-      includeRaw: false,
-      prefix: {
-        rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-        rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
-        schema: 'http://schema.org/',
-        foaf: 'http://xmlns.com/foaf/0.1/',
-        dc: 'http://purl.org/dc/elements/1.1/',
-        dct: 'http://purl.org/dc/terms/',
-        osg: 'http://pending.org/osg/',
-        dot: 'http://pending.org/dot/',
-      },
-      mappings: {
-        'type': 'rdf:type',
-        'is a': 'rdf:type',
-        'domain': 'rdfs:domain',
-        'range': 'rdfs:range',
-        'see also': 'rdfs:seeAlso',
-        'same as': 'rdf:sameAs',
-        'knows': 'foaf:knows',
-        'title': 'dct:title',
-        'created': 'dct:created',
-        'modified': 'dct:modified',
-        'description': 'dct:description',
-      },
-    },
+    triplifierOptions: {},
   },
   rebuildOnStartup: false,
   indexOnSave: true,
   indexOnOpen: true,
   panelTag: 'panel/query',
-  panelQuery: `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX dot: <http://pending.org/dot/>
-PREFIX dcterms: <http://purl.org/dc/terms/>
+  panelQuery: `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT ?document ?title ?content WHERE {    
-    GRAPH ?g {  
-        ?document a dot:MarkdownDocument .        
-        ?document dot:tag "panel/query" .        
-        ?document dot:raw ?content .        
-        OPTIONAL { ?document dcterms:title ?title }    
-        OPTIONAL { ?document <urn:property:order> ?order }
+SELECT ?document ?title ?content WHERE {
+    GRAPH ?g {
+        ?document <urn:token:tags> "panel/query" ;
+                  <urn:token:about> ?panel .
+        ?panel <urn:code-block:osg> ?query .
+        OPTIONAL { ?document <urn:token:title> ?documentTitle }
+        OPTIONAL { ?panel rdfs:label ?panelTitle }
+        OPTIONAL { ?document <urn:token:order> ?order }
+        BIND(COALESCE(?panelTitle, ?documentTitle) AS ?title)
+        BIND(CONCAT("\`\`\`osg\\n", STR(?query), "\\n\`\`\`") AS ?content)
     }
 } ORDER BY ?order`,
+}
+
+export function migrateSettings (settings) {
+  const panelQuery = settings.panelQuery || ''
+  const usesLegacyPanelModel = panelQuery.includes('dot:MarkdownDocument') &&
+    panelQuery.includes('dot:raw')
+
+  return usesLegacyPanelModel
+    ? { ...settings, panelQuery: DEFAULT_SETTINGS.panelQuery }
+    : settings
 }
 
 
@@ -148,13 +122,13 @@ export class SparqlSettingTab extends PluginSettingTab {
     // Mode selection with constraints
     const modeSettings = new Setting(section)
     .setName('Triplifier Mode')
-    .setDesc('Embedded: Built-in vault-triplifier. External: OSG command-line tool.')
+    .setDesc('Embedded: Built-in dot-triples. External: OSG command-line tool.')
 
     if (this.plugin.settings.mode === 'embedded') {
       // Embedded triplestore only works with embedded triplifier
       modeSettings.addDropdown(dropdown => {
         dropdown
-        .addOption('embedded', 'Embedded (vault-triplifier)')
+        .addOption('embedded', 'Embedded (dot-triples)')
         .setValue('embedded')
         .setDisabled(true)
       })
@@ -170,7 +144,7 @@ export class SparqlSettingTab extends PluginSettingTab {
       // External triplestore can use either triplifier
       modeSettings.addDropdown(dropdown => {
         dropdown
-        .addOption('embedded', 'Embedded (vault-triplifier)')
+        .addOption('embedded', 'Embedded (dot-triples)')
         .addOption('external', 'External (OSG triplifier)')
         .setValue(this.plugin.settings.triplifierMode)
         .onChange(async (value) => {
@@ -333,113 +307,11 @@ export class SparqlSettingTab extends PluginSettingTab {
   }
 
   addEmbeddedTriplifierSettings(container) {
-    container.createEl('h4', { text: 'Vault-Triplifier Configuration' })
-
-    const options = this.plugin.settings.embeddedSettings.triplifierOptions
-
-    // Basic Options
-    const basicSection = container.createEl('div', { cls: 'triplifier-section' })
-    basicSection.createEl('h5', { text: 'Basic Options' })
-
-    new Setting(basicSection)
-    .setName('Include Selectors')
-    .setDesc('Add CSS selectors for sections in the RDF output')
-    .addToggle(toggle => {
-      toggle
-      .setValue(options.includeSelectors)
-      .onChange(async (value) => {
-        options.includeSelectors = value
-        await this.saveTriplifierOptions()
-      })
+    container.createEl('h4', { text: 'dot-triples' })
+    container.createEl('p', {
+      text: 'Markdown is converted with the canonical dot-triples document model. Predicates use urn:token: IRIs; semantic mappings are applied downstream with SPARQL CONSTRUCT queries.',
+      cls: 'setting-item-description'
     })
-
-    new Setting(basicSection)
-    .setName('Include Raw Content')
-    .setDesc('Include the raw markdown content in the RDF output')
-    .addToggle(toggle => {
-      toggle
-      .setValue(options.includeRaw)
-      .onChange(async (value) => {
-        options.includeRaw = value
-        await this.saveTriplifierOptions()
-      })
-    })
-
-    new Setting(basicSection)
-    .setName('Include Code Block Content')
-    .setDesc('Process content inside code blocks')
-    .addToggle(toggle => {
-      toggle
-      .setValue(options.includeCodeBlockContent !== false)
-      .onChange(async (value) => {
-        options.includeCodeBlockContent = value
-        await this.saveTriplifierOptions()
-      })
-    })
-
-    // Document Partitioning
-    const partitionSection = container.createEl('div', { cls: 'triplifier-section' })
-    partitionSection.createEl('h5', { text: 'Document Partitioning' })
-
-    new Setting(partitionSection)
-    .setName('Partition Strategy')
-    .setDesc('How to split documents into sections')
-    .addDropdown(dropdown => {
-      dropdown
-      .addOption('headers-all', 'All Headers')
-      .addOption('headers-h1-h2', 'H1 and H2 Headers')
-      .addOption('headers-h2-h3', 'H2 and H3 Headers')
-      .addOption('headers-h1-h2-h3', 'H1, H2, and H3 Headers')
-      .setValue(options.partitionBy?.[0] || 'headers-h2-h3')
-      .onChange(async (value) => {
-        options.partitionBy = [value]
-        await this.saveTriplifierOptions()
-      })
-    })
-
-    // Labels Configuration
-    const labelsSection = container.createEl('div', { cls: 'triplifier-section' })
-    labelsSection.createEl('h5', { text: 'Generated Labels' })
-
-    const labelOptions = ['documents', 'sections', 'anchors']
-    labelOptions.forEach(option => {
-      new Setting(labelsSection)
-      .setName(`Include ${option} labels`)
-      .setDesc(`Generate rdfs:label for ${option}`)
-      .addToggle(toggle => {
-        toggle
-        .setValue(options.includeLabelsFor?.includes(option) || false)
-        .onChange(async (value) => {
-          if (!options.includeLabelsFor) options.includeLabelsFor = []
-
-          if (value) {
-            if (!options.includeLabelsFor.includes(option)) {
-              options.includeLabelsFor.push(option)
-            }
-          } else {
-            options.includeLabelsFor = options.includeLabelsFor.filter(item => item !== option)
-          }
-
-          await this.saveTriplifierOptions()
-        })
-      })
-    })
-
-    // Advanced Options (Collapsible)
-    const advancedDetails = container.createEl('details', { cls: 'triplifier-advanced' })
-    advancedDetails.createEl('summary', { text: '⚙️ Advanced Options' })
-
-    // Prefix Manager
-    this.addPrefixManager(advancedDetails, options)
-
-    // Mappings Manager
-    this.addMappingsManager(advancedDetails, options)
-
-    // Code Block Parsing
-    this.addCodeBlockParsingSettings(advancedDetails, options)
-
-    // Import/Export
-    this.addConfigActions(container)
   }
 
   addPrefixManager(container, options) {
@@ -662,17 +534,7 @@ export class SparqlSettingTab extends PluginSettingTab {
   }
 
   async saveTriplifierOptions() {
-    try {
-      // Validate against schema
-      const validated = MarkdownTriplifierOptions.parse(
-        this.plugin.settings.embeddedSettings.triplifierOptions
-      )
-      this.plugin.settings.embeddedSettings.triplifierOptions = validated
-      await this.plugin.saveSettings()
-    } catch (e) {
-      console.error('Validation error:', e)
-      new Notice('Invalid configuration: ' + e.message)
-    }
+    await this.plugin.saveSettings()
   }
 
   exportConfig() {
@@ -689,8 +551,7 @@ export class SparqlSettingTab extends PluginSettingTab {
     const modal = new ImportConfigModal(this.app, async (config) => {
       try {
         const parsed = JSON.parse(config)
-        const validated = MarkdownTriplifierOptions.parse(parsed)
-        this.plugin.settings.embeddedSettings.triplifierOptions = validated
+        this.plugin.settings.embeddedSettings.triplifierOptions = parsed
         await this.plugin.saveSettings()
         this.display()
         new Notice('Configuration imported successfully!')

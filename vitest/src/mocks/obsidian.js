@@ -25,6 +25,15 @@ export class PluginSettingTab {
   display() {}
 }
 
+export class Modal {
+  constructor(app) {
+    this.app = app
+  }
+
+  open() {}
+  close() {}
+}
+
 export class MarkdownRenderer {
   static render(app, markdown, element, sourcePath, component) {
     element.innerHTML = markdown

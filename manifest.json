@@ -6,7 +6,7 @@
   "description": "Query the graph of your notes",
   "author": "Cristian Vasquez",
   "authorUrl": "https://cristianvasquez.me",
-  "isDesktopOnly": false,
+  "isDesktopOnly": true,
   "main": "main.js",
   "scripts": []
 }

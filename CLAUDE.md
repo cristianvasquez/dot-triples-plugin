@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Core Technologies
 - **Vanilla JavaScript**: Simplified architecture without framework overhead (migrated from Vue.js - see ADR-002)
-- **RDF/SPARQL Stack**: `rdf-ext`, `sparql-http-client`, `sparqljs`, `vault-triplifier`
+- **RDF/SPARQL Stack**: `rdf-ext`, `sparql-http-client`, `sparqljs`, `dot-triples` (`triplifier-md`, `sparql-md`)
 - **Vite**: Build system for ES modules
 - **Vitest**: Testing framework with happy-dom environment
 
@@ -32,13 +32,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `src/lib/triplestore/EmbeddedTriplestoreService.js`: In-memory triplestore for development
 - `src/lib/triplifier/TriplifierService.js`: Abstract triplifier interface  
 - `src/lib/triplifier/ExternalTriplifierService.js`: OSG command-line triplification
-- `src/lib/triplifier/EmbeddedTriplifierService.js`: Direct vault-triplifier integration
+- `src/lib/triplifier/EmbeddedTriplifierService.js`: Direct dot-triples integration
 
 ### URI Convention System (ADR-001)
 The plugin uses a simplified three-URI system:
 1. **File resources**: `file:///absolute/path/to/file.md` (filesystem references)
 2. **Name resources**: `urn:name:NoteName` (Obsidian note names)
-3. **Properties**: `urn:property:propertyName` (RDF predicates)
+3. **Tokens**: `urn:token:propertyName` (RDF predicates)
 
 Internal URI detection distinguishes vault files from external resources for proper link rendering.
 
@@ -78,7 +78,7 @@ npm run test:ui
 
 - **OSG Integration**: Configurable path (default: `/home/cvasquez/.local/share/pnpm/osg`)
 - **SPARQL Endpoint**: Configurable endpoint (default: `http://localhost:7878/query`)
-- **vault-triplifier**: Converts Obsidian markdown to RDF triples
+- **dot-triples**: Converts Obsidian markdown to canonical RDF triples
 
 ## Key Patterns
 
@@ -89,7 +89,7 @@ Plugin handles `osg` and `osg-debug` code blocks as interactive SPARQL queries.
 Query templates support dynamic variables and property placeholders:
 - `__THIS__`: Current document name URI (`urn:name:NoteName`)
 - `__DOC__`: Current document file URI (`file:///absolute/path`)
-- `__property__`: Property placeholders (e.g., `__label__` → `<urn:property:label>`)
+- `__property__`: Token placeholders (e.g., `__label__` → `<urn:token:label>`)
 - `[[WikiLinks]]`: Internal links to name URIs
 
 ### Event Handling
@@ -105,7 +105,7 @@ Direct function calls replace EventEmitter pattern. File modification events tri
 ### Service Pattern
 The plugin uses a service composition architecture:
 - **TriplestoreService**: Abstract interface for SPARQL endpoint communication (remote vs embedded)
-- **TriplifierService**: Abstract interface for markdown→RDF conversion (external OSG vs embedded vault-triplifier)
+- **TriplifierService**: Abstract interface for markdown→RDF conversion (external OSG vs embedded dot-triples)
 - **Controller**: Coordinates services based on settings configuration
 
 ### Link Rendering

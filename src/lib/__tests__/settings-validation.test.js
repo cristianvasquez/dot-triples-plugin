@@ -1,70 +1,66 @@
 import { describe, it, expect } from 'vitest'
-import { MarkdownTriplifierOptions } from 'vault-triplifier'
+import { Store } from 'oxigraph'
+import rdf from 'rdf-ext'
+import { pathToFileURL } from 'canonical-md'
+import { triplifyToQuads } from 'triplifier-md'
+import { DEFAULT_SETTINGS, migrateSettings } from '../settings.js'
 
-describe('Triplifier Options Validation', () => {
-  it('should validate correct triplifier options', () => {
-    const validOptions = {
-      includeRaw: true,
-      includeSelectors: true,
-      partitionBy: ['headers-h1-h2', 'headers-h2-h3'],
-      includeLabelsFor: ['documents', 'sections'],
-      prefix: {
-        rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-        rdfs: 'http://www.w3.org/2000/01/rdf-schema#'
-      },
-      mappings: {
-        'is a': 'rdf:type',
-        'same as': 'rdfs:sameAs'
-      }
-    }
-
-    expect(() => MarkdownTriplifierOptions.parse(validOptions)).not.toThrow()
+describe('dot-triples settings', () => {
+  it('uses dot-triples as the option-free embedded triplifier', () => {
+    expect(DEFAULT_SETTINGS.embeddedSettings.triplifierOptions).toEqual({})
   })
 
-  it('should reject invalid partitionBy values', () => {
-    const invalidOptions = {
-      partitionBy: ['invalid-partition-type']
-    }
-
-    expect(() => MarkdownTriplifierOptions.parse(invalidOptions)).toThrow()
+  it('discovers panels using dot-triples tokens and code-block predicates', () => {
+    expect(DEFAULT_SETTINGS.panelQuery).toContain('<urn:token:tags>')
+    expect(DEFAULT_SETTINGS.panelQuery).toContain('<urn:token:about>')
+    expect(DEFAULT_SETTINGS.panelQuery).toContain('<urn:code-block:osg>')
+    expect(DEFAULT_SETTINGS.panelQuery).toContain('CONCAT("```osg\\n"')
+    expect(DEFAULT_SETTINGS.panelQuery).not.toContain('urn:property:')
   })
 
-  it('should reject invalid includeLabelsFor values', () => {
-    const invalidOptions = {
-      includeLabelsFor: ['invalid-label-type']
+  it('migrates the persisted vault-triplifier panel query', () => {
+    const legacySettings = {
+      panelQuery: 'SELECT * WHERE { ?document a dot:MarkdownDocument ; dot:raw ?content }',
+      panelTag: 'panel/query',
     }
 
-    expect(() => MarkdownTriplifierOptions.parse(invalidOptions)).toThrow()
+    expect(migrateSettings(legacySettings)).toEqual({
+      ...legacySettings,
+      panelQuery: DEFAULT_SETTINGS.panelQuery,
+    })
   })
 
-  it('should apply defaults for missing values', () => {
-    const minimalOptions = {}
-    
-    const result = MarkdownTriplifierOptions.parse(minimalOptions)
-    
-    expect(result.includeLabelsFor).toEqual([])
-    expect(result.partitionBy).toEqual(['headers-h2-h3'])
-    expect(result.includeRaw).toBe(false)
-    expect(result.includeSelectors).toBe(true)
-  })
+  it('runs the panel query against dot-triples output', async () => {
+    const store = new Store()
+    const graph = pathToFileURL('/vault/Stats.md')
+    const markdown = [
+      '---',
+      'tags: [panel/query]',
+      'title: Stats',
+      'order: "4"',
+      '---',
+      '',
+      '# Stats',
+      '',
+      '## Count',
+      '',
+      '```osg',
+      'SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }',
+      '```',
+    ].join('\n')
 
-  it('should handle string-to-boolean coercion', () => {
-    const stringBoolOptions = {
-      includeRaw: 'true',
-      includeSelectors: 'false'
+    for (const quad of triplifyToQuads(markdown, { file: '/vault/Stats.md' })) {
+      store.add(rdf.quad(quad.subject, quad.predicate, quad.object, graph))
     }
 
-    const result = MarkdownTriplifierOptions.parse(stringBoolOptions)
-    
-    expect(result.includeRaw).toBe(true)
-    expect(result.includeSelectors).toBe(false)
-  })
+    const results = [...store.query(DEFAULT_SETTINGS.panelQuery, {
+      use_default_graph_as_union: true,
+    })]
+    const bindings = Object.fromEntries(results[0])
 
-  it('should reject unknown properties in strict mode', () => {
-    const optionsWithUnknown = {
-      unknownProperty: 'value'
-    }
-
-    expect(() => MarkdownTriplifierOptions.parse(optionsWithUnknown)).toThrow()
+    expect(results).toHaveLength(1)
+    expect(bindings.title.value).toBe('Count')
+    expect(bindings.content.value).toBe(
+      '```osg\nSELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }\n```')
   })
 })
