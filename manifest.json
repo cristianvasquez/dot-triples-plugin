@@ -1,7 +1,7 @@
 {
   "id": "dot-triples",
   "name": "Dot Triples",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "minAppVersion": "0.9.12",
   "description": "Query the graph of your notes",
   "author": "Cristian Vasquez",

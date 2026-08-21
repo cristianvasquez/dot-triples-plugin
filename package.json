@@ -6,7 +6,7 @@
   "bugs": {
     "url": "https://github.com/cristianvasquez/dot-triples-plugin/issues"
   },
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Query the graph of your notes",
   "main": "src/main.js",
   "scripts": {
