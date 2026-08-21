@@ -24,12 +24,12 @@ SELECT ?document ?title ?content WHERE {
     GRAPH ?g {
         ?document <urn:token:tags> "panel/query" ;
                   <urn:token:about> ?panel .
-        ?panel <urn:code-block:osg> ?query .
+        ?panel <urn:code-block:dot-sparql> ?query .
         OPTIONAL { ?document <urn:token:title> ?documentTitle }
         OPTIONAL { ?panel rdfs:label ?panelTitle }
         OPTIONAL { ?document <urn:token:order> ?order }
         BIND(COALESCE(?panelTitle, ?documentTitle) AS ?title)
-        BIND(CONCAT("\`\`\`osg\\n", STR(?query), "\\n\`\`\`") AS ?content)
+        BIND(CONCAT("\`\`\`dot-sparql\\n", STR(?query), "\\n\`\`\`") AS ?content)
     }
 } ORDER BY ?order`,
 }

@@ -13,8 +13,8 @@ describe('dot-triples settings', () => {
   it('discovers panels using dot-triples tokens and code-block predicates', () => {
     expect(DEFAULT_SETTINGS.panelQuery).toContain('<urn:token:tags>')
     expect(DEFAULT_SETTINGS.panelQuery).toContain('<urn:token:about>')
-    expect(DEFAULT_SETTINGS.panelQuery).toContain('<urn:code-block:osg>')
-    expect(DEFAULT_SETTINGS.panelQuery).toContain('CONCAT("```osg\\n"')
+    expect(DEFAULT_SETTINGS.panelQuery).toContain('<urn:code-block:dot-sparql>')
+    expect(DEFAULT_SETTINGS.panelQuery).toContain('CONCAT("```dot-sparql\\n"')
     expect(DEFAULT_SETTINGS.panelQuery).not.toContain('urn:property:')
   })
 
@@ -44,7 +44,7 @@ describe('dot-triples settings', () => {
       '',
       '## Count',
       '',
-      '```osg',
+      '```dot-sparql',
       'SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }',
       '```',
     ].join('\n')
@@ -61,6 +61,6 @@ describe('dot-triples settings', () => {
     expect(results).toHaveLength(1)
     expect(bindings.title.value).toBe('Count')
     expect(bindings.content.value).toBe(
-      '```osg\nSELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }\n```')
+      '```dot-sparql\nSELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }\n```')
   })
 })

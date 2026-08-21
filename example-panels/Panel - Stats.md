@@ -10,7 +10,7 @@ order: "4"
 
 ## Total number of named graphs
 
-```osg
+```dot-sparql
 SELECT (COUNT(DISTINCT ?g) AS ?graphCount)
 WHERE {
   GRAPH ?g {
@@ -21,7 +21,7 @@ WHERE {
 
 ## Total number of triples
 
-```osg
+```dot-sparql
 SELECT (COUNT(*) AS ?tripleCount)
 WHERE {
   GRAPH ?g {

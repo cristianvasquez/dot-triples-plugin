@@ -30,8 +30,8 @@ export class CommandManager {
     })
 
     this.plugin.addCommand({
-      id: 'insert-osg-template',
-      name: 'Insert OSG query template',
+      id: 'insert-named-query-template',
+      name: 'Insert named query template',
       editorCallback: (editor) => {
         editor.replaceRange(getOSGQueryTemplate(), editor.getCursor())
       },

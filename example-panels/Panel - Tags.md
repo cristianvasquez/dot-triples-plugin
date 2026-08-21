@@ -10,7 +10,7 @@ order: "6"
 
 ## Tags of this document
 
-```osg
+```dot-sparql
 PREFIX dot: <http://pending.org/dot/>
 
 SELECT DISTINCT ?tag 
@@ -23,7 +23,7 @@ WHERE {
 
 ## Documents sharing a tag
 
-```osg
+```dot-sparql
 PREFIX dot: <http://pending.org/dot/>
 PREFIX oa: <http://www.w3.org/ns/oa#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>

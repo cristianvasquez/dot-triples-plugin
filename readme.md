@@ -8,7 +8,7 @@ cross-vault and cross-repository querying through shared triplestores.
 Your markdown files are indexed as RDF triples
 using [dot-triples](https://github.com/cristianvasquez/dot-triples) and stored in a triplestore. You can then:
 
-- **Run SPARQL queries** in `osg` code blocks within your notes
+- **Run SPARQL queries** in `dot-sparql` code blocks within your notes
 - **View contextual panels** showing query results for the current file you're viewing
 - **Query across multiple vaults** when using a shared triplestore
 
@@ -33,9 +33,9 @@ Or install the plugin via [BRAT](https://tfthacker.com/BRAT) using this reposito
 
 1. Enable the plugin.  (uses in-memory triplestore by default)
 2. Run the index command
-3. Query your notes using `osg` code blocks:
+3. Query your notes using `dot-sparql` code blocks:
 
-```osg
+```dot-sparql
 SELECT ?p ?o WHERE {
   ?s ?p ?o .
 } LIMIT 5
@@ -45,7 +45,7 @@ It will display 5 random 'triples'.
 
 To narrow down to the current note, you can use the name of the note as subject.
 
-```osg
+```dot-sparql
 SELECT ?p ?o WHERE {
   [[Current Note]] ?p ?o .
 }

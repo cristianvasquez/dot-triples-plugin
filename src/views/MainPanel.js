@@ -4,7 +4,7 @@ import { replaceAllTokens, removeFrontmatter } from '../lib/templates.js'
 
 // Store selected template and mode globally to persist across file changes
 let selectedTemplateKey = 'current-file'
-let isRichMode = true // true = 'osg' (rich), false = 'osg-debug' (raw)
+let isRichMode = true // true = 'dot-sparql' (rich), false = 'dot-sparql-debug' (raw)
 let availablePanels = {} // Cache for dynamically loaded panels
 let panelsLoaded = false // Track if panels have been loaded
 let currentDropdownSelect = null // Reference to current dropdown for refresh
@@ -274,8 +274,8 @@ async function renderQuery (container, templateKey, context) {
 
   // Update the code block type based on rich mode
   const finalMarkdown = processedMarkdown.replace(
-    /```osg\n/g,
-    `\`\`\`${isRichMode ? 'osg' : 'osg-debug'}\n`,
+    /```dot-sparql\n/g,
+    `\`\`\`${isRichMode ? 'dot-sparql' : 'dot-sparql-debug'}\n`,
   )
 
   await renderMarkdown(container, finalMarkdown, context)

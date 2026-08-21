@@ -59,7 +59,7 @@ function termAsMarkdown (term, basePath) {
 }
 
 function safe (value) {
-  return value.replaceAll('```osg', '```').
+  return value.replaceAll('```dot-sparql', '```').
     replaceAll('|', '\\|').
     replaceAll('\n', ' ').
     replaceAll('\r', '').

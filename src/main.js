@@ -40,13 +40,13 @@ export default class SparqlPlugin extends Plugin {
       (leaf) => new CurrentFileView(leaf, this.appContext),
     )
 
-    this.registerMarkdownCodeBlockProcessor('osg', async (source, el) => {
-      console.log('[OSG] Processing osg code block:', source.substring(0, 50) + '...')
+    this.registerMarkdownCodeBlockProcessor('dot-sparql', async (source, el) => {
+      console.log('[dot-triples] Processing dot-sparql code block:', source.substring(0, 50) + '...')
       await renderSparqlView(source, el, this.appContext, false)
     })
 
-    this.registerMarkdownCodeBlockProcessor('osg-debug', async (source, el) => {
-      console.log('[OSG] Processing osg-debug code block:', source.substring(0, 50) + '...')
+    this.registerMarkdownCodeBlockProcessor('dot-sparql-debug', async (source, el) => {
+      console.log('[dot-triples] Processing dot-sparql-debug code block:', source.substring(0, 50) + '...')
       await renderSparqlView(source, el, this.appContext, true)
     })
 

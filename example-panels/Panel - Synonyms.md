@@ -10,7 +10,7 @@ order: "5"
 > Occurrences of Named Concepts of this document in other documents of other vaults
 
 
-```osg
+```dot-sparql
 PREFIX dot: <http://pending.org/dot/>
 PREFIX oa: <http://www.w3.org/ns/oa#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>

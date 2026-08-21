@@ -10,7 +10,7 @@ order: "7"
 
 ## Direct instances of this class
 
-```osg
+```dot-sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT ?concept
@@ -23,7 +23,7 @@ LIMIT 300
 
 ## Broader transitive
 
-```osg
+```dot-sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT (?superClass as ?concept) 
@@ -41,7 +41,7 @@ ORDER BY (COUNT(?mid))
 
 ## Narrower transitive
 
-```osg
+```dot-sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT (?subClass as ?concept) 
@@ -59,7 +59,7 @@ ORDER BY (COUNT(?mid))
 
 ## Direct Domain
 
-```osg
+```dot-sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT ?domainOf
@@ -70,7 +70,7 @@ WHERE {
 
 ## Direct Range
 
-```osg
+```dot-sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT ?rangeOf
