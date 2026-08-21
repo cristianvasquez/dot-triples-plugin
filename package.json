@@ -1,10 +1,10 @@
 {
-  "name": "obsidian-sparql",
+  "name": "dot-triples-plugin",
   "author": "Cristian Vasquez",
   "license": "MIT",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/cristianvasquez/obsidian-sparql/issues"
+    "url": "https://github.com/cristianvasquez/dot-triples-plugin/issues"
   },
   "version": "1.0.1",
   "description": "Query the graph of your notes",
@@ -37,7 +37,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cristianvasquez/obsidian-sparql.git"
+    "url": "git+https://github.com/cristianvasquez/dot-triples-plugin.git"
   },
-  "homepage": "https://github.com/cristianvasquez/obsidian-sparql#readme"
+  "homepage": "https://github.com/cristianvasquez/dot-triples-plugin#readme"
 }

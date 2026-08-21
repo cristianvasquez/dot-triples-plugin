@@ -1,6 +1,6 @@
 {
-  "id": "sparql",
-  "name": "Sparql",
+  "id": "dot-triples",
+  "name": "Dot Triples",
   "version": "1.0.0",
   "minAppVersion": "0.9.12",
   "description": "Query the graph of your notes",

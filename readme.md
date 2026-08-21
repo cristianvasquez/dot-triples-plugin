@@ -1,4 +1,4 @@
-# obsidian-sparql
+# Dot Triples
 
 A SPARQL alternative to Dataview for Obsidian. Query your markdown notes using standard RDF/SPARQL, with support for
 cross-vault and cross-repository querying through shared triplestores.

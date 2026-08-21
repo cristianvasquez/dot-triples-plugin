@@ -10,7 +10,7 @@ export class CommandManager {
 
   registerCommands () {
     this.plugin.addCommand({
-      id: 'open-obsidian-sparql',
+      id: 'open-dot-triples-panel',
       name: 'Open panel',
       checkCallback: (checking) => {
         if (this.plugin.app.workspace.activeLeaf) {

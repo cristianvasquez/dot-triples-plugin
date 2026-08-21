@@ -1,7 +1,7 @@
 import { ItemView } from 'obsidian'
 import { renderPanel } from './MainPanel.js'
 
-export const SIDE_VIEW_ID = `obsidian-sparql-sideview`
+export const SIDE_VIEW_ID = `dot-triples-sideview`
 
 export class CurrentFileView extends ItemView {
   constructor (leaf, appContext) {
@@ -16,7 +16,7 @@ export class CurrentFileView extends ItemView {
   }
 
   getDisplayText () {
-    return 'obsidian-sparql'
+    return 'Dot Triples'
   }
 
   async onOpen () {

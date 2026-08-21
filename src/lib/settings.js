@@ -55,7 +55,7 @@ export class SparqlSettingTab extends PluginSettingTab {
     const { containerEl } = this
     containerEl.empty()
     containerEl.addClass('sparql-settings') // Add scoped CSS class
-    containerEl.createEl('h2', { text: 'Settings for obsidian SPARQL' })
+    containerEl.createEl('h2', { text: 'Dot Triples' })
 
     // Main sections
     this.createTriplestoreSection(containerEl)
@@ -179,7 +179,7 @@ export class SparqlSettingTab extends PluginSettingTab {
 
     // Examples link
     const examplesDiv = section.createEl('div', { cls: 'setting-item-description' })
-    examplesDiv.innerHTML = '💡 <strong>Examples:</strong> See <a href="https://github.com/cristianvasquez/obsidian-sparql/tree/main/example-panels" target="_blank">example-panels/</a> for ready-to-use SPARQL query panels.'
+    examplesDiv.innerHTML = '💡 <strong>Examples:</strong> See <a href="https://github.com/cristianvasquez/dot-triples-plugin/tree/main/example-panels" target="_blank">example-panels/</a> for ready-to-use SPARQL query panels.'
 
     // Panel tag
     new Setting(section)
