@@ -8,6 +8,8 @@ order: "1"
 
 # Panel - Document triples
 
+- rdfs:comment :: Dumps every RDF triple triplified from this document's named graph.
+
 ## Triplified content
 
 > __DATE__

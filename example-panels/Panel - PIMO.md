@@ -8,6 +8,8 @@ order: "7"
 
 # Class info
 
+- rdfs:comment :: Ontology info for when this document denotes a class or property: instances, super/subclasses, and domain/range.
+
 ## Direct instances of this class
 
 ```dot-sparql

@@ -8,6 +8,8 @@ order: "4"
 
 # Stats
 
+- rdfs:comment :: Vault-wide counts of named graphs and triples, as a sync health check.
+
 ## Total number of named graphs
 
 ```dot-sparql

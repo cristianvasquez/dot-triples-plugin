@@ -7,8 +7,10 @@ order: "5"
 ---
  
 # Synonyms
-> Occurrences of Named Concepts of this document in other documents of other vaults
 
+- rdfs:comment :: Finds other files whose content resolves to the same concept as this document.
+
+> Occurrences of Named Concepts of this document in other documents of other vaults
 
 ```dot-sparql
 PREFIX dot: <http://pending.org/dot/>

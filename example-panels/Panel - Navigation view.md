@@ -8,6 +8,8 @@ order: "2"
 
 # Panel - Navigation view
 
+- rdfs:comment :: Class-based navigation of sibling, broader, and narrower concepts, using rdf:type / rdfs:subClassOf triples.
+
 ---
 
 Sibling concepts

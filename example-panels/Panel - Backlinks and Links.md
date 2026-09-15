@@ -8,6 +8,8 @@ order: "3"
  
 # Panel - Backlinks and Links
 
+- rdfs:comment :: Backlinks are other files' triples that point at this document's concept.
+
 ## Backlinks
 
 ```dot-sparql

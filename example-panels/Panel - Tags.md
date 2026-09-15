@@ -8,6 +8,8 @@ order: "6"
 
 # Tags
 
+- rdfs:comment :: Tags of this document, and other documents sharing a tag.
+
 ## Tags of this document
 
 ```dot-sparql
