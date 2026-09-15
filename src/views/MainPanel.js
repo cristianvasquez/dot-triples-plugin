@@ -1,4 +1,4 @@
-import { MarkdownRenderer } from 'obsidian'
+import { DropdownComponent, MarkdownRenderer } from 'obsidian'
 import { QUERY_TEMPLATES } from '../queries.js'
 import { replaceAllTokens, removeFrontmatter } from '../lib/templates.js'
 
@@ -182,13 +182,14 @@ function createControls (context, onTemplateChange, onModeChange) {
   label.textContent = 'Template: '
   label.style.marginRight = '8px'
   label.style.fontSize = '12px'
+  templateGroup.appendChild(label)
 
-  const select = document.createElement('select')
-  select.style.padding = '2px 4px'
+  // Use Obsidian's own DropdownComponent (class="dropdown") so the popup
+  // renders through Obsidian's theming instead of the OS-native <select>
+  // popup, which ignored the app theme and showed the view content through it.
+  const dropdownComponent = new DropdownComponent(templateGroup)
+  const select = dropdownComponent.selectEl
   select.style.fontSize = '12px'
-  select.style.background = 'var(--background-primary)'
-  select.style.border = '1px solid var(--background-modifier-border)'
-  select.style.borderRadius = '3px'
 
   // Dropdown will be populated later after queries are loaded
 
@@ -199,9 +200,6 @@ function createControls (context, onTemplateChange, onModeChange) {
       onTemplateChange(select.value)
     }
   })
-
-  templateGroup.appendChild(label)
-  templateGroup.appendChild(select)
 
   // Rich mode checkbox
   const modeGroup = document.createElement('div')
