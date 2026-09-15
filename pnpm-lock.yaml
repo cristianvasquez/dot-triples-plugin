@@ -15,8 +15,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       canonical-md:
-        specifier: ^0.1.0
-        version: 0.1.0(web-streams-polyfill@3.3.3)
+        specifier: link:../../rdf/dot-triples/packages/canonical-md
+        version: link:../../rdf/dot-triples/packages/canonical-md
       oxigraph:
         specifier: 0.5.0-beta.4
         version: 0.5.0-beta.4
@@ -27,14 +27,14 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       sparql-md:
-        specifier: ^0.1.0
-        version: 0.1.0(web-streams-polyfill@3.3.3)
+        specifier: link:../../rdf/dot-triples/packages/sparql-md
+        version: link:../../rdf/dot-triples/packages/sparql-md
       sparqljs:
         specifier: ^3.7.3
         version: 3.7.3
       triplifier-md:
-        specifier: ^0.1.0
-        version: 0.1.0(web-streams-polyfill@3.3.3)
+        specifier: link:../../rdf/dot-triples/packages/triplifier-md
+        version: link:../../rdf/dot-triples/packages/triplifier-md
     devDependencies:
       '@vitest/ui':
         specifier: ^2.1.9
@@ -674,10 +674,6 @@ packages:
     resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
     engines: {node: '>=8'}
 
-  canonical-md@0.1.0:
-    resolution: {integrity: sha512-qBzCrR1EscCvwoI0VCpl57ppOL2YoYzM4JdfqVWVVKGcvVit7kkc+HpzbmAEx3GtWQ9HUk8pKPe2Rdd75k446w==}
-    engines: {node: '>=18'}
-
   canonicalize@1.0.8:
     resolution: {integrity: sha512-0CNTVCLZggSh7bc5VkX5WWPWO+cyZbNd07IHIsSXLia/eAq+r836hgk+8BKoEh7949Mda87VUOitx5OddVj64A==}
 
@@ -1012,9 +1008,6 @@ packages:
   rdf-ext@2.5.2:
     resolution: {integrity: sha512-xndLCbnxcPUZ2CxdQX/BdHjAUsZuFuA4Uw2ddDZnX3vhLKoTIaXunWyp1r9yfX66Nxv0mEkzm71YIi19ex/pEg==}
 
-  rdf-ext@2.6.0:
-    resolution: {integrity: sha512-wd6yMPoRRwvHvovLaPqZLyVDpBh81DAi4o68o7tP2ijGMwPHGmwrhocV4LdULdo/A30PMD+B/uJgfbhvLRBoKg==}
-
   rdf-transform-triple-to-quad@2.0.1:
     resolution: {integrity: sha512-OknvjzZSwstm120ugeeXpzS8o8jZNK+qc9lNmKOtndc7t2J17i62h3BVccUh4M0dBZk/sKhgaXaALaEHbPuWPg==}
 
@@ -1070,18 +1063,8 @@ packages:
   sparql-http-client@3.0.1:
     resolution: {integrity: sha512-efsgs0Dq6SvQ3Ag4l5GhayTINN3zNlKo99WoA1SYS7iJ1T1tSJjM9ZadTJYK5T6LJayrLllPCILI5fkpn7tY7Q==}
 
-  sparql-md@0.1.0:
-    resolution: {integrity: sha512-81h5opmKRoPx9W6a8ttasP0hDZnF9Nd3UwIgTl47j5U30lSQtodoeDmNcapi1rh4rU9/pDO/3JZFc2V2bNV2YA==}
-    engines: {node: '>=18'}
-
   sparqljs@3.7.3:
     resolution: {integrity: sha512-FQfHUhfwn5PD9WH6xPU7DhFfXMgqK/XoDrYDVxz/grhw66Il0OjRg3JBgwuEvwHnQt7oSTiKWEiCZCPNaUbqgg==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    hasBin: true
-
-  sparqljs@3.7.4:
-    resolution: {integrity: sha512-hb4C84gf7KM7vz+iG595mPwvqxOvBJCm9L3dCxtV2zZDht6ZMmMG0tHeeqFeqwb9875yU9U4lhYe4LYRvWj0BQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     hasBin: true
@@ -1139,11 +1122,6 @@ packages:
   totalist@3.0.1:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
-
-  triplifier-md@0.1.0:
-    resolution: {integrity: sha512-ThEVM2m0++009q236GDkYQwXVjI7vK0HLnLkm1UnFrNb94U2iMO/1tzyN03+RiyeXzxytI4y4L612cLrTMFz5w==}
-    engines: {node: '>=18'}
-    hasBin: true
 
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
@@ -1789,12 +1767,6 @@ snapshots:
 
   cac@6.7.14: {}
 
-  canonical-md@0.1.0(web-streams-polyfill@3.3.3):
-    dependencies:
-      rdf-ext: 2.6.0(web-streams-polyfill@3.3.3)
-    transitivePeerDependencies:
-      - web-streams-polyfill
-
   canonicalize@1.0.8: {}
 
   chai@5.3.3:
@@ -2173,30 +2145,6 @@ snapshots:
     transitivePeerDependencies:
       - web-streams-polyfill
 
-  rdf-ext@2.6.0(web-streams-polyfill@3.3.3):
-    dependencies:
-      '@rdfjs/data-model': 2.1.1
-      '@rdfjs/dataset': 2.0.2
-      '@rdfjs/environment': 1.0.0
-      '@rdfjs/fetch-lite': 3.3.0
-      '@rdfjs/formats': 4.0.1(web-streams-polyfill@3.3.3)
-      '@rdfjs/io': 1.2.0
-      '@rdfjs/namespace': 2.0.1
-      '@rdfjs/normalize': 2.0.3
-      '@rdfjs/prefix-map': 0.1.2
-      '@rdfjs/score': 0.1.2
-      '@rdfjs/term-map': 2.0.2
-      '@rdfjs/term-set': 2.0.3
-      '@rdfjs/to-ntriples': 3.0.1
-      '@rdfjs/traverser': 0.1.4
-      file-fetch: 2.0.1
-      grapoi: 1.1.3
-      nodeify-fetch: 3.1.0
-      proto-fetch: 2.0.0
-      readable-stream: 4.7.0
-    transitivePeerDependencies:
-      - web-streams-polyfill
-
   rdf-transform-triple-to-quad@2.0.1:
     dependencies:
       '@rdfjs/data-model': 2.1.1
@@ -2286,18 +2234,7 @@ snapshots:
       readable-stream: 4.7.0
       stream-chunks: 1.0.0
 
-  sparql-md@0.1.0(web-streams-polyfill@3.3.3):
-    dependencies:
-      canonical-md: 0.1.0(web-streams-polyfill@3.3.3)
-      sparqljs: 3.7.4
-    transitivePeerDependencies:
-      - web-streams-polyfill
-
   sparqljs@3.7.3:
-    dependencies:
-      rdf-data-factory: 1.1.3
-
-  sparqljs@3.7.4:
     dependencies:
       rdf-data-factory: 1.1.3
 
@@ -2350,14 +2287,6 @@ snapshots:
   tinyspy@3.0.2: {}
 
   totalist@3.0.1: {}
-
-  triplifier-md@0.1.0(web-streams-polyfill@3.3.3):
-    dependencies:
-      '@rdfjs/serializer-ntriples': 2.0.1
-      canonical-md: 0.1.0(web-streams-polyfill@3.3.3)
-      rdf-ext: 2.6.0(web-streams-polyfill@3.3.3)
-    transitivePeerDependencies:
-      - web-streams-polyfill
 
   undici-types@5.26.5: {}
 
