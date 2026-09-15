@@ -59,13 +59,6 @@
   box-shadow: 0 0 0 2px var(--text-accent-hover);
 }
 
-/* Error styling - scoped to SPARQL */
-.sparql-settings .setting-section textarea.error,
-.sparql-settings .setting-section input[type="text"].error {
-  border-color: var(--text-error);
-  background: var(--background-modifier-error);
-}
-
 /* Triplifier sections - scoped to SPARQL */
 .sparql-settings .triplifier-section {
     margin: 16px 0;
@@ -80,36 +73,3 @@
     font-weight: 600;
 }
 
-/* Prefix and mapping items - scoped to SPARQL */
-.sparql-settings .prefix-item, 
-.sparql-settings .mapping-item {
-    margin: 8px 0;
-    padding: 8px;
-    background: var(--background-primary);
-    border-radius: 4px;
-}
-
-/* Config actions - scoped to SPARQL */
-.sparql-settings .config-actions {
-    border-top: 1px solid var(--background-modifier-border);
-    padding-top: 16px;
-}
-
-/* Advanced options - scoped to SPARQL */
-.sparql-settings details.triplifier-advanced {
-    margin-top: 16px;
-    padding: 12px;
-    background: var(--background-secondary-alt);
-    border-radius: 6px;
-}
-
-.sparql-settings details.triplifier-advanced summary {
-    cursor: pointer;
-    font-weight: 500;
-    color: var(--text-muted);
-}
-
-.sparql-settings details.triplifier-advanced[open] summary {
-    margin-bottom: 12px;
-    color: var(--text-normal);
-}
