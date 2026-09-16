@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: true
+minimumReleaseAgeExclude:
+  - canonical-md@0.1.1
+  - sparql-md@0.1.1
+  - triplifier-md@0.1.1

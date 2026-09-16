@@ -2,8 +2,8 @@ import { ns } from '../../namespaces.js'
 
 /**
  * Sort SPARQL CONSTRUCT results by subject with custom priority ordering:
- * 1. Normal subjects (NamedNodes that are not dot:MarkdownDocument)
- * 2. dot:MarkdownDocument subjects
+ * 1. File subjects
+ * 2. Other named subjects
  * 3. Blank nodes
  *
  * Within each category, sort alphabetically by subject value, then by predicate
@@ -50,21 +50,12 @@ function buildSubjectPriorityMap (results) {
   for (const triple of results) {
     const subjectValue = triple.subject.value
 
-    // Skip if we already processed this subject
-    if (priorityMap.has(subjectValue)) {
-      continue
-    }
-
-    // Default priority: 1 (normal subjects)
-    let priority = 2
-
-    // Check if it's a blank node: priority 3
+    // A file's type triple may follow its other properties.
+    let priority = priorityMap.get(subjectValue) ?? 2
     if (triple.subject.termType === 'BlankNode') {
       priority = 3
-    }
-    // Check if it's a dot:MarkdownDocument: priority 2
-    else if (triple.predicate.value === ns.rdf.type.value &&
-      triple.object.value === ns.dot('MarkdownDocument').value) {
+    } else if (triple.predicate.value === ns.rdf.type.value &&
+      triple.object.value === ns.document('File').value) {
       priority = 1
     }
 

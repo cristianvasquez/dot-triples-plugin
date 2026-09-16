@@ -1,4 +1,4 @@
-import { MarkdownRenderer } from 'obsidian'
+import { MarkdownRenderer, Notice } from 'obsidian'
 import { Parser } from 'sparqljs'
 import { generateMarkdownTable, generateMarkdownTableRaw } from '../components/BindingsTableAsMarkdown.js'
 import { resultsToMarkdownTurtle } from '../components/turtleAsMarkdown.js'
@@ -61,11 +61,6 @@ export async function renderSparqlView (
 async function renderSelectResults (results, container, context, debug, query) {
   let markdown = ''
 
-  // Debug section if requested
-  if (debug) {
-    markdown += `<details class="debug-panel">\n<summary>Debug: Query</summary>\n\n\`\`\`sparql\n${query}\n\`\`\`\n\n</details>\n\n`
-  }
-
   // Results section
   if (!results || results.length === 0) {
     markdown += 'No results found.\n'
@@ -87,17 +82,8 @@ async function renderSelectResults (results, container, context, debug, query) {
     markdown += markdownTable
   }
 
-  // Render single markdown string with proper source path for link resolution
-  const activeFile = context.app.workspace.getActiveFile()
-  const sourcePath = activeFile ? activeFile.path : ''
-
-  await MarkdownRenderer.render(
-    context.app,
-    markdown,
-    container,
-    sourcePath,
-    context.plugin,
-  )
+  await renderResults(container, context, query, markdown, markdown,
+    debug ? 'Results · Raw' : 'Results', results?.length || 0)
 }
 
 /**
@@ -105,36 +91,67 @@ async function renderSelectResults (results, container, context, debug, query) {
  */
 async function renderConstructQuery (
   results, container, context, debug, query) {
-  let markdown = ''
+  const count = results?.length || 0
+  const turtle = count ? prettyPrint(results, ns) : ''
+  const markdown = !count ? 'No results found.' : debug
+    ? `\`\`\`turtle
+${turtle}
+\`\`\``
+    : resultsToMarkdownTurtle(results, context.app, '')
 
-  // Debug section if requested
-  if (debug) {
-    markdown += `<details class="debug-panel">\n<summary>Debug: Query</summary>\n\n\`\`\`sparql\n${query}\n\`\`\`\n\n</details>\n---\n`
-  }
-
-  // Generate turtle markdown
-  if (!results || results.length === 0) {
-    markdown += 'No results found.\n'
-  } else {
-    // No title needed here since we're in a query context
-
-    const turtleContent = debug ? `\`\`\`turtle
-${prettyPrint(results, ns)}
-\`\`\`` : resultsToMarkdownTurtle(results, context.app, '')
-
-    markdown += turtleContent + '\n'
-  }
-
-  // Render single markdown string with proper source path for link resolution
-  const activeFile = context.app.workspace.getActiveFile()
-  const sourcePath = activeFile ? activeFile.path : ''
-
-  await MarkdownRenderer.render(
-    context.app,
-    markdown,
-    container,
-    sourcePath,
-    context.plugin,
-  )
+  await renderResults(container, context, query, markdown, turtle,
+    debug ? 'Results · Turtle' : 'Results', count)
 }
 
+async function renderResults (container, context, query, markdown, copyText, label, count) {
+  container.classList.add('dot-triples-results')
+  container.replaceChildren()
+  const sourcePath = context.app.workspace.getActiveFile()?.path || ''
+  const render = (text, target) => MarkdownRenderer.render(
+    context.app, text, target, sourcePath, context.plugin)
+
+  const toolbar = document.createElement('div')
+  toolbar.className = 'dot-triples-results-toolbar'
+  const queryToggle = document.createElement('button')
+  queryToggle.type = 'button'
+  queryToggle.className = 'dot-triples-query-toggle'
+  queryToggle.setAttribute('aria-expanded', 'false')
+  const queryLabel = document.createElement('span')
+  queryLabel.textContent = 'Query'
+  queryToggle.appendChild(queryLabel)
+  toolbar.appendChild(queryToggle)
+  const queryContent = document.createElement('div')
+  queryContent.className = 'dot-triples-query'
+  queryContent.hidden = true
+  queryToggle.addEventListener('click', () => {
+    queryContent.hidden = !queryContent.hidden
+    queryToggle.setAttribute('aria-expanded', String(!queryContent.hidden))
+  })
+
+  const title = document.createElement('span')
+  title.textContent = `${label} (${count})`
+  toolbar.appendChild(title)
+  const copy = document.createElement('button')
+  copy.type = 'button'
+  copy.className = 'dot-triples-copy'
+  copy.textContent = 'Copy'
+  copy.title = 'Copy query results'
+  copy.setAttribute('aria-label', copy.title)
+  copy.disabled = count === 0
+  copy.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(copyText)
+      new Notice('Query results copied')
+    } catch (error) {
+      new Notice(`Could not copy results: ${error.message}`)
+    }
+  })
+  toolbar.appendChild(copy)
+  container.appendChild(toolbar)
+  container.appendChild(queryContent)
+  await render(`\`\`\`sparql\n${query}\n\`\`\``, queryContent)
+  const body = document.createElement('div')
+  body.className = 'dot-triples-results-body'
+  container.appendChild(body)
+  await render(markdown, body)
+}

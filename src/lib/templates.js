@@ -11,7 +11,52 @@ const DATE = '__DATE__' // The current date
  * Replace all template variables in text (both markdown and SPARQL)
  */
 function replaceAllTokens (text, absolutePath, activeFile, repoPath) {
-  let processed = String(text)
+  return mapOutsideCodeSpans(String(text), part => expandTokens(part, absolutePath, repoPath))
+}
+
+// Fenced query blocks remain executable; only inline code is literal.
+function mapOutsideCodeSpans (text, transform) {
+  const lines = text.split(/(?<=\n)/)
+  let output = ''
+  let prose = ''
+  let fence = null
+  const flush = () => {
+    let start = 0
+    const runs = [...prose.matchAll(/`+/g)]
+    for (let i = 0; i < runs.length; i++) {
+      const opening = runs[i]
+      const closingIndex = runs.findIndex((run, j) => j > i && run[0] === opening[0])
+      if (closingIndex < 0) continue
+      const closing = runs[closingIndex]
+      output += transform(prose.slice(start, opening.index))
+      start = closing.index + closing[0].length
+      output += prose.slice(opening.index, start)
+      i = closingIndex
+    }
+    output += transform(prose.slice(start))
+    prose = ''
+  }
+  for (const line of lines) {
+    const marker = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/m)
+    if (fence) {
+      output += transform(line)
+      if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) {
+        fence = null
+      }
+    } else if (marker) {
+      flush()
+      fence = marker[1]
+      output += line
+    } else {
+      prose += line
+    }
+  }
+  flush()
+  return output
+}
+
+function expandTokens (text, absolutePath, repoPath) {
+  let processed = text
 
   // Replace __DATE__ with current timestamp
   if (processed.includes(DATE)) {
@@ -60,9 +105,8 @@ function getOSGQueryTemplate () {
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX dot: <http://pending.org/dot/>
 PREFIX oa: <http://www.w3.org/ns/oa#>
-PREFIX schema: <http://schema.org/>
+PREFIX schema: <https://schema.org/>
 PREFIX dct: <http://purl.org/dc/terms/>
 
 SELECT * WHERE {  
@@ -80,17 +124,14 @@ function getTemplate () {
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX dot: <http://pending.org/dot/>
 PREFIX oa: <http://www.w3.org/ns/oa#>
-PREFIX schema: <http://schema.org/>
+PREFIX schema: <https://schema.org/>
 PREFIX dct: <http://purl.org/dc/terms/>
 
 SELECT * WHERE {  
     GRAPH ?g {
       __THIS__ ?p ?o
     }
-    FILTER (?p!=dot:raw)
-    FILTER (?p!=dot:contents)
   } LIMIT 10
 \`\`\`
 `

@@ -73,3 +73,122 @@
     font-weight: 600;
 }
 
+/* Panel text follows Obsidian's editor settings. */
+.dot-triples-panel {
+  font-family: var(--font-text);
+  font-size: var(--font-text-size);
+  line-height: var(--line-height-normal);
+}
+
+.dot-triples-controls,
+.dot-triples-results-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+  font-family: var(--font-interface);
+  font-size: var(--font-ui-small);
+}
+
+.dot-triples-template {
+  flex: 1;
+  min-width: 0;
+}
+
+.dot-triples-template select {
+  min-width: 0;
+  max-width: 100%;
+  flex: 1;
+}
+
+.dot-triples-results-toolbar {
+  flex-wrap: nowrap;
+  color: var(--text-muted);
+}
+
+.dot-triples-results-toolbar button {
+  padding: 2px 8px;
+  height: auto;
+  font-size: inherit;
+}
+
+.dot-triples-query {
+  margin: 0;
+}
+
+.dot-triples-query summary,
+.dot-triples-panel details > summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+
+.dot-triples-results pre,
+.dot-triples-results code {
+  font-family: var(--font-monospace);
+  font-size: var(--code-size);
+}
+
+.dot-triples-results pre {
+  overflow-x: auto;
+  margin: 8px 0;
+  padding: 8px;
+}
+
+.dot-triples-results-body .copy-code-button {
+  display: none;
+}
+
+.dot-triples-results-body {
+  overflow-x: auto;
+}
+
+.dot-triples-panel .query-content > :first-child {
+  margin-top: 8px;
+}
+
+.dot-triples-panel h1,
+.dot-triples-panel h2 {
+  margin-block: 12px 6px;
+  font-size: 1.1em;
+}
+
+.dot-triples-panel table {
+  width: 100%;
+  margin-block: 6px;
+  font-size: inherit;
+}
+
+.dot-triples-panel :is(td, th) {
+  padding: 4px 6px;
+}
+
+.dot-triples-results-toolbar > span {
+  white-space: nowrap;
+}
+
+.dot-triples-results-toolbar .dot-triples-copy {
+  margin-left: auto;
+}
+
+.dot-triples-results-toolbar .dot-triples-query-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+}
+
+.dot-triples-query-toggle::before {
+  content: '▸';
+}
+
+.dot-triples-query-toggle[aria-expanded="true"]::before {
+  content: '▾';
+}

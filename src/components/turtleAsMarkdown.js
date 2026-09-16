@@ -24,7 +24,7 @@ export function resultsToMarkdownTurtle (
 
   const basePath = getBasePath(app)
 
-  // Sort by subject priority: MarkdownDocument -> Normal -> Blank nodes
+  // Sort by subject priority: document:File -> Normal -> Blank nodes
   const sortedResults = sortTriplesBySubject(results)
 
   // Group triples by subject
@@ -44,10 +44,10 @@ export function resultsToMarkdownTurtle (
   for (const [subjectKey, triples] of subjectGroups) {
     const subjectMarkdown = termAsMarkdown(triples[0].subject, basePath)
 
-    // Check if this is a MarkdownDocument
-    const isMarkdownDocument = triples.some(triple =>
+    // Check if this is a document:File
+    const isDocumentFile = triples.some(triple =>
       triple.predicate.value === ns.rdf.type.value &&
-      triple.object.value === ns.dot('MarkdownDocument').value,
+      triple.object.value === ns.document('File').value,
     )
 
     // Property-Value table
@@ -72,8 +72,8 @@ export function resultsToMarkdownTurtle (
       propertyDivider,
       ...propertyRows].join('\n')
 
-    if (isMarkdownDocument) {
-      // Wrap MarkdownDocument sections in collapsible details
+    if (isDocumentFile) {
+      // Wrap document:File sections in collapsible details
       sections.push(
         `<details>\n<summary>Document metadata</summary>\n\n${tableContent}\n\n</details>`)
     } else {

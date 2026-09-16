@@ -87,6 +87,28 @@ Content here`
   })
 
   describe('replaceAllTokens', () => {
+    it('preserves inline code while expanding surrounding variables', () => {
+      const input = '`__DOC__` __DOC__ ``__THIS__ ` __label__`` __THIS__'
+      expect(replaceAllTokens(input, '/path/Test.md')).toBe(
+        '`__DOC__` <file:///path/Test.md> ``__THIS__ ` __label__`` <urn:name:Test>')
+    })
+
+    it('does not require context for protected variables', () => {
+      expect(replaceAllTokens('`__DOC__ __REPO__ __DATE__ [[Note]]`')).toBe(
+        '`__DOC__ __REPO__ __DATE__ [[Note]]`')
+    })
+
+    it('expands query fences and preserves inline code before and after them', () => {
+      const input = '`__DOC__`\n\n```dot-sparql\nGRAPH __DOC__ { ?s ?p ?o }\n```\n`__DOC__`'
+      expect(replaceAllTokens(input, '/path/Test.md')).toBe(
+        '`__DOC__`\n\n```dot-sparql\nGRAPH <file:///path/Test.md> { ?s ?p ?o }\n```\n`__DOC__`')
+    })
+
+    it('keeps quoted string expansion and unmatched backticks unchanged', () => {
+      expect(replaceAllTokens('"__DOC__" \'__THIS__\' ` __label__', '/path/Test.md')).toBe(
+        '"<file:///path/Test.md>" \'<urn:name:Test>\' ` <urn:token:label>')
+    })
+
     it('should replace __DATE__ token', () => {
       const input = 'Current time: __DATE__'
       const result = replaceAllTokens(input, '/path/to/file.md', null)

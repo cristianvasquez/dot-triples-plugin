@@ -13,50 +13,26 @@ order: "3"
 ## Backlinks
 
 ```dot-sparql
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX dot: <http://pending.org/dot/>
-PREFIX oa: <http://www.w3.org/ns/oa#>
+PREFIX schema: <https://schema.org/>
+PREFIX dct: <http://purl.org/dc/terms/>
 
-CONSTRUCT { ?s ?p ?concept } WHERE {
-	 BIND(__DOC__ AS ?doc)
-	 VALUES ?type { dot:NamedConcept oa:Annotation }
-
-    GRAPH ?doc {
-        ?concept a ?type
-    }
-    GRAPH ?other_doc {
-        ?s ?p ?concept
-    }
-    FILTER (?doc!=?other_doc)
+CONSTRUCT { ?source dct:references ?concept } WHERE {
+  GRAPH __DOC__ { ?file schema:about ?concept }
+  GRAPH ?other { ?source dct:references ?concept }
+  FILTER (?other != __DOC__)
 }
 ```
 
 ## Links
 
 ```dot-sparql
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX dot: <http://pending.org/dot/>
-PREFIX oa: <http://www.w3.org/ns/oa#>
+PREFIX schema: <https://schema.org/>
+PREFIX dct: <http://purl.org/dc/terms/>
 
-CONSTRUCT {
-  ?concept ?p ?o
-}
-WHERE {
-  BIND(__DOC__ AS ?doc)
-  VALUES ?type { dot:NamedConcept oa:Annotation }
-  GRAPH ?doc {
-    ?concept a ?type ;
-             ?p ?o .
-  }
-  FILTER EXISTS {
-    GRAPH ?other_doc {
-      ?o ?p2 ?o2 .
-      FILTER (?other_doc != ?doc)
-    }
+CONSTRUCT { ?concept dct:references ?target } WHERE {
+  GRAPH __DOC__ {
+    ?file schema:about? ?concept .
+    ?concept dct:references ?target .
   }
 }
 ```

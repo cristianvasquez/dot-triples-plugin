@@ -10,24 +10,24 @@ order: "2"
 
 - rdfs:comment :: Class-based navigation of sibling, broader, and narrower concepts, using rdf:type / rdfs:subClassOf triples.
 
+These queries require domain `rdf:type` and `rdfs:subClassOf` triples from downstream mappings.
+
 ---
 
 Sibling concepts
 
 ```dot-sparql
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>  
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>  
-PREFIX prov: <http://www.w3.org/ns/prov#>  
-PREFIX dot: <http://pending.org/dot/>  
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX schema: <https://schema.org/>
 PREFIX oa: <http://www.w3.org/ns/oa#>
-  
-SELECT DISTINCT  (?class as ?common_class) (?concept as ?sibling_concept)  WHERE { 
+
+SELECT DISTINCT  (?class as ?common_class) (?concept as ?sibling_concept)  WHERE {
     GRAPH __DOC__ {
-        ?s a ?knownClass .
+        ?file schema:about ?s .
         ?s ?relation ?otherClass
         VALUES ?relation { rdf:type rdfs:subClassOf }
-	    VALUES ?knownClass { dot:NamedConcept oa:Annotation }
-	    FILTER (?otherClass != ?knownClass)
 	}
 	  ?concept a ?class .
 	  ?class rdfs:subClassOf* ?otherClass .
@@ -67,23 +67,20 @@ LIMIT 300
 ---
 
 ```dot-sparql
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>  
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>  
-PREFIX dot: <http://pending.org/dot/>  
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <https://schema.org/>
 PREFIX oa: <http://www.w3.org/ns/oa#>
 
 SELECT DISTINCT ?concept (?relatedClass as ?broader_concept)
 WHERE {
 	  GRAPH __DOC__ {
-		 { 
-		    ?concept a ?knownClass .
+		 {
+		    ?file schema:about ?concept .
 		    ?concept  ?relation ?thisClass .
-		    VALUES ?relation { rdf:type rdfs:subClassOf }		 
-		    VALUES ?knownClass { dot:NamedConcept oa:Annotation }
-		    FILTER (?thisClass != ?knownClass)
+		    VALUES ?relation { rdf:type rdfs:subClassOf }
 		 } UNION {
-			?thisClass a ?knownClass
-			VALUES ?knownClass { dot:NamedConcept oa:Annotation }
+			?file schema:about ?thisClass .
 		 }
 	 }
  ?thisClass rdfs:subClassOf ?relatedClass .
@@ -94,23 +91,20 @@ ORDER BY ?concept ?relatedClass
 ---
 
 ```dot-sparql
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>  
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>  
-PREFIX dot: <http://pending.org/dot/>  
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <https://schema.org/>
 PREFIX oa: <http://www.w3.org/ns/oa#>
 
 SELECT DISTINCT ?concept (?relatedClass as ?narrower_concept)
 WHERE {
 	  GRAPH __DOC__ {
-		 { 
-		    ?concept a ?knownClass .
+		 {
+		    ?file schema:about ?concept .
 		    ?concept ?relation ?thisClass .
-	        VALUES ?relation { rdf:type rdfs:subClassOf }		    
-		    VALUES ?knownClass { dot:NamedConcept oa:Annotation }
-		    FILTER (?thisClass != ?knownClass)
+	        VALUES ?relation { rdf:type rdfs:subClassOf }
 		 } UNION {
-			?thisClass a ?knownClass
-			VALUES ?knownClass { dot:NamedConcept oa:Annotation }
+			?file schema:about ?thisClass .
 		 }
 	 }
  ?relatedClass rdfs:subClassOf ?thisClass .

@@ -76,6 +76,19 @@ The plugin replaces these tokens before it sends the query:
   `<urn:token:label>`).
 - `[[Note Name]]`: a wiki link. The plugin converts it to a name URI.
 
+## Upgrading to dot-triples 0.1.1
+
+Run **Re-index vault** after upgrading to replace stored triples. The plugin migrates the previous default panel discovery query; update custom queries yourself.
+
+- Frontmatter `tags` now uses `schema:keywords`, and `title` uses `rdfs:label`.
+- Files link to their notes and headings through `schema:about`. Prose links use `dct:references`.
+- Code blocks use `schema:hasPart`, `schema:programmingLanguage`, and `resource:selector` with `oa:exact` for their text.
+- Use `https://schema.org/` for `schema:` and `osg://vocab/resource#` for `resource:`.
+
+The embedded triplifier keeps the library's `urn:name:Note.md` file subject inside the `file:///.../Note.md` named graph. `__DOC__` identifies that graph; `__THIS__` identifies the note. Names preserve case, and heading links such as `[[Note#Heading]]` resolve to `urn:name:Note%23Heading`. Body fields still use `urn:token:` predicates; domain types require downstream mappings.
+
+Copy the updated example panels into your vault to replace queries that use the old vocabulary.
+
 ## Example panels
 
 The [example-panels/](./example-panels/) directory has ready-to-use query panels

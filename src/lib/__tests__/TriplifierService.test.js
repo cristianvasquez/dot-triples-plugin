@@ -68,7 +68,7 @@ describe('TriplifierService Architecture', () => {
       expect(quads).toEqual(expect.arrayContaining([
         expect.objectContaining({
           subject: expect.objectContaining({ value: 'urn:name:test.md' }),
-          predicate: expect.objectContaining({ value: 'urn:token:tags' }),
+          predicate: expect.objectContaining({ value: 'https://schema.org/keywords' }),
           object: expect.objectContaining({ value: 'example' }),
         }),
         expect.objectContaining({

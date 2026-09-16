@@ -10,6 +10,8 @@ order: "7"
 
 - rdfs:comment :: Ontology info for when this document denotes a class or property: instances, super/subclasses, and domain/range.
 
+These queries require domain types and ontology triples from downstream mappings.
+
 ## Direct instances of this class
 
 ```dot-sparql

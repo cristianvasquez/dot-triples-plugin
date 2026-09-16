@@ -19,6 +19,29 @@ export const DEFAULT_SETTINGS = {
   indexOnOpen: true,
   panelTag: 'panel/query',
   panelQuery: `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <https://schema.org/>
+PREFIX resource: <osg://vocab/resource#>
+PREFIX oa: <http://www.w3.org/ns/oa#>
+
+SELECT ?document ?title ?content WHERE {
+    GRAPH ?g {
+        ?document schema:keywords "panel/query" ;
+                  schema:about? ?panel .
+        ?panel schema:hasPart ?part .
+        ?part a schema:SoftwareSourceCode ;
+              schema:programmingLanguage "dot-sparql" ;
+              resource:selector ?selector .
+        ?selector a oa:TextQuoteSelector ; oa:exact ?query .
+        OPTIONAL { ?document rdfs:label ?documentTitle }
+        OPTIONAL { ?panel rdfs:label ?panelTitle }
+        OPTIONAL { ?document <urn:token:order> ?order }
+        BIND(COALESCE(?panelTitle, ?documentTitle, STR(?document)) AS ?title)
+        BIND(CONCAT("\`\`\`dot-sparql\\n", STR(?query), "\\n\`\`\`") AS ?content)
+    }
+} ORDER BY ?order`,
+}
+
+const PREVIOUS_PANEL_QUERY = `PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT ?document ?title ?content WHERE {
     GRAPH ?g {
@@ -31,15 +54,17 @@ SELECT ?document ?title ?content WHERE {
         BIND(COALESCE(?panelTitle, ?documentTitle) AS ?title)
         BIND(CONCAT("\`\`\`dot-sparql\\n", STR(?query), "\\n\`\`\`") AS ?content)
     }
-} ORDER BY ?order`,
-}
+} ORDER BY ?order`
 
 export function migrateSettings (settings) {
   const panelQuery = settings.panelQuery || ''
   const usesLegacyPanelModel = panelQuery.includes('dot:MarkdownDocument') &&
     panelQuery.includes('dot:raw')
 
-  return usesLegacyPanelModel
+  const usesPreviousDefault = panelQuery.replace(/\s+/g, ' ').trim() ===
+    PREVIOUS_PANEL_QUERY.replace(/\s+/g, ' ').trim()
+
+  return usesLegacyPanelModel || usesPreviousDefault
     ? { ...settings, panelQuery: DEFAULT_SETTINGS.panelQuery }
     : settings
 }
@@ -167,6 +192,38 @@ export class SparqlSettingTab extends PluginSettingTab {
     } else {
       this.addEmbeddedTriplifierSettings(section)
     }
+  }
+
+  addTriplificationTriggers(container) {
+    new Setting(container)
+    .setName('Index on save')
+    .setDesc('Re-index a note when it is saved.')
+    .addToggle(toggle => toggle
+      .setValue(this.plugin.settings.indexOnSave)
+      .onChange(async (value) => {
+        this.plugin.settings.indexOnSave = value
+        await this.plugin.saveSettings()
+      }))
+
+    new Setting(container)
+    .setName('Index on open')
+    .setDesc('Re-index a note when it is opened.')
+    .addToggle(toggle => toggle
+      .setValue(this.plugin.settings.indexOnOpen)
+      .onChange(async (value) => {
+        this.plugin.settings.indexOnOpen = value
+        await this.plugin.saveSettings()
+      }))
+
+    new Setting(container)
+    .setName('Rebuild on startup')
+    .setDesc('Re-index the whole vault when Obsidian starts.')
+    .addToggle(toggle => toggle
+      .setValue(this.plugin.settings.rebuildOnStartup)
+      .onChange(async (value) => {
+        this.plugin.settings.rebuildOnStartup = value
+        await this.plugin.saveSettings()
+      }))
   }
 
   createPanelDiscoverySection(containerEl) {
@@ -309,7 +366,7 @@ export class SparqlSettingTab extends PluginSettingTab {
   addEmbeddedTriplifierSettings(container) {
     container.createEl('h4', { text: 'dot-triples' })
     container.createEl('p', {
-      text: 'Markdown is converted with the canonical dot-triples document model. Predicates use urn:token: IRIs; semantic mappings are applied downstream with SPARQL CONSTRUCT queries.',
+      text: 'Markdown is converted with the canonical dot-triples document model. Files carry frontmatter; notes and headings carry fields and references. Body fields use urn:token: IRIs; tags, links, and code blocks use the document vocabulary.',
       cls: 'setting-item-description'
     })
   }

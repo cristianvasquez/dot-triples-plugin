@@ -4,7 +4,7 @@ import { ns } from '../../namespaces.js'
 
 describe('Triple Sorter', () => {
   describe('sortTriplesBySubject', () => {
-    it('should sort subjects by priority: MarkdownDocument -> Normal -> Blank nodes', () => {
+    it('should sort subjects by priority: File -> Normal -> Blank nodes', () => {
       const triples = [
         // Blank node (should be last)
         {
@@ -12,11 +12,11 @@ describe('Triple Sorter', () => {
           predicate: { value: 'http://example.org/prop' },
           object: { value: 'blank value' }
         },
-        // MarkdownDocument (should be middle)
+        // File (should be middle)
         {
           subject: { termType: 'NamedNode', value: 'http://example.org/doc1' },
           predicate: { value: ns.rdf.type.value },
-          object: { value: ns.dot('MarkdownDocument').value }
+          object: { value: ns.document('File').value }
         },
         // Normal subject (should be first)
         {
@@ -24,7 +24,7 @@ describe('Triple Sorter', () => {
           predicate: { value: 'http://example.org/prop' },
           object: { value: 'normal value' }
         },
-        // Another MarkdownDocument property
+        // Another File property
         {
           subject: { termType: 'NamedNode', value: 'http://example.org/doc1' },
           predicate: { value: 'http://example.org/title' },
@@ -34,7 +34,7 @@ describe('Triple Sorter', () => {
 
       const sorted = sortTriplesBySubject(triples)
 
-      // First should be MarkdownDocument subjects (both triples)
+      // First should be File subjects (both triples)
       expect(sorted[0].subject.value).toBe('http://example.org/doc1')
       expect(sorted[1].subject.value).toBe('http://example.org/doc1')
       

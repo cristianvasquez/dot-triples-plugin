@@ -1,5 +1,5 @@
-import { Notice } from 'obsidian'
-import { refreshPanelQueries } from '../views/MainPanel.js'
+import { Notice, debounce } from 'obsidian'
+import { refreshPanelQueries, fileHasPanelTag } from '../views/MainPanel.js'
 import { getOSGQueryTemplate, getTemplate } from './templates.js'
 
 export class CommandManager {
@@ -80,6 +80,9 @@ export class CommandManager {
   }
 
   registerEvents () {
+    // Coalesce redraws so rapid autosaves do not stall Obsidian.
+    this.panelsDirty = false
+    this.debouncedPanelUpdate = debounce(() => this.updatePanel(), 400, true)
 
     this.plugin.registerEvent(
       this.plugin.app.vault.on('modify', async (file) => {
@@ -94,10 +97,7 @@ export class CommandManager {
               `Auto-sync failed for ${file.basename}: ${error.message}`)
           }
         }
-        // Update debug panel if open
-        if (file && this.plugin.debugView) {
-          await this.plugin.debugView.updateForFile()
-        }
+        this.schedulePanelUpdate(file)
       }),
     )
 
@@ -115,17 +115,18 @@ export class CommandManager {
           new Notice(
             `Auto-sync failed for renamed ${file.basename}: ${error.message}`)
         }
-        // Update debug panel if open
-        if (file && this.plugin.debugView) {
-          await this.plugin.debugView.updateForFile()
-        }
+        this.schedulePanelUpdate(file)
       }),
     )
 
     this.plugin.registerEvent(
       this.plugin.app.vault.on('delete', async (file) => {
         await this.controller.deleteNamedGraph(file.path)
-
+        // A deleted note may have been a panel; reload definitions to drop it.
+        if (this.plugin.debugView) {
+          this.panelsDirty = true
+          this.debouncedPanelUpdate()
+        }
       }),
     )
 
@@ -143,12 +144,38 @@ export class CommandManager {
               `Auto-sync failed for ${file.basename}: ${error.message}`)
           }
         }
-        // Update debug panel if open
+        // Redraw immediately so navigation between notes stays responsive
         if (file && this.plugin.debugView) {
           await this.plugin.debugView.updateForFile()
         }
       }),
     )
+  }
 
+  /**
+   * Mark the panel cache dirty when a panel note changed, then request a
+   * debounced redraw. Does nothing when the side panel is closed.
+   */
+  schedulePanelUpdate (file) {
+    if (!this.plugin.debugView) return
+    if (fileHasPanelTag(this.plugin.appContext, file)) {
+      this.panelsDirty = true
+    }
+    this.debouncedPanelUpdate()
+  }
+
+  /**
+   * Redraw the side panel. Reloads panel definitions from the store only when
+   * a panel note changed since the last redraw; otherwise just re-renders the
+   * current query, which is cheap.
+   */
+  async updatePanel () {
+    const view = this.plugin.debugView
+    if (!view) return
+    if (this.panelsDirty) {
+      this.panelsDirty = false
+      await refreshPanelQueries(this.plugin.appContext)
+    }
+    await view.updateForFile()
   }
 }

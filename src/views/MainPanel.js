@@ -1,4 +1,5 @@
-import { DropdownComponent, MarkdownRenderer } from 'obsidian'
+import { pathToFileURL } from 'canonical-md'
+import { DropdownComponent, MarkdownRenderer, Notice, setIcon } from 'obsidian'
 import { QUERY_TEMPLATES } from '../queries.js'
 import { replaceAllTokens, removeFrontmatter } from '../lib/templates.js'
 
@@ -6,13 +7,15 @@ import { replaceAllTokens, removeFrontmatter } from '../lib/templates.js'
 let selectedTemplateKey = 'current-file'
 let isRichMode = true // true = 'dot-sparql' (rich), false = 'dot-sparql-debug' (raw)
 let availablePanels = {} // Cache for dynamically loaded panels
+let panelSources = {}
+let currentSourceButton = null
 let panelsLoaded = false // Track if panels have been loaded
 let currentDropdownSelect = null // Reference to current dropdown for refresh
 
 /**
  * Load available query templates using Obsidian metadata (tag-based filtering)
  */
-export async function loadQueriesViaObsidian (context) {
+export async function loadQueriesViaObsidian (context, sources = {}) {
   const queries = {}
 
   try {
@@ -44,6 +47,7 @@ export async function loadQueriesViaObsidian (context) {
 
         const key = title.toLowerCase().replace(/\s+/g, '-')
         queries[key] = { content, title, order }
+        sources[key] = file.path
       } catch (err) {
         console.warn(`⚠️ Failed to read file "${file.path}":`, err)
       }
@@ -87,9 +91,21 @@ function extractTagsFromCache (cache) {
 }
 
 /**
+ * True when the file carries the configured panel tag (i.e. it defines a panel).
+ * Used to decide when the side panel must reload its panel definitions.
+ */
+export function fileHasPanelTag (context, file) {
+  if (!file) return false
+  const searchQuery = context.plugin.settings.panelTag || 'panel/query'
+  const tag = searchQuery.replace(/^tag:/, '').trim()
+  const cache = context.app.metadataCache.getFileCache(file)
+  return extractTagsFromCache(cache).includes(tag)
+}
+
+/**
  * Load available query templates using SPARQL
  */
-async function loadQueriesViaSPARQL (context) {
+async function loadQueriesViaSPARQL (context, sources) {
   // Use configurable query from settings
   const discoveryQuery = context.plugin.settings.panelQuery
 
@@ -98,12 +114,18 @@ async function loadQueriesViaSPARQL (context) {
     const results = await context.controller.select(discoveryQuery)
     const queries = {}
 
+    const filesByUri = new Map(context.app.vault.getMarkdownFiles().map(file => [
+      pathToFileURL(context.app.vault.adapter.getFullPath(file.path)).value,
+      file.path,
+    ]))
+
     // Add discovered queries
     results.forEach(result => {
       const title = result.title?.value || 'Untitled Query'
       const content = result.content?.value || ''
       const key = title.toLowerCase().replace(/\s+/g, '-')
       queries[key] = content
+      sources[key] = filesByUri.get(result.document?.value) || null
     })
 
     return queries
@@ -119,17 +141,18 @@ async function loadQueriesViaSPARQL (context) {
  */
 async function loadAvailablePanels (context) {
   let panels = {}
+  const sources = {}
 
   // Load from both sources and merge (SPARQL takes precedence for duplicates)
   try {
-    const obsidianPanels = await loadQueriesViaObsidian(context)
+    const obsidianPanels = await loadQueriesViaObsidian(context, sources)
     Object.assign(panels, obsidianPanels)
   } catch (error) {
     console.warn('Failed to load panels from Obsidian:', error)
   }
 
   try {
-    const sparqlPanels = await loadQueriesViaSPARQL(context)
+    const sparqlPanels = await loadQueriesViaSPARQL(context, sources)
     Object.assign(panels, sparqlPanels) // SPARQL takes precedence
   } catch (error) {
     console.warn('Failed to load panels from SPARQL:', error)
@@ -140,6 +163,7 @@ async function loadAvailablePanels (context) {
     Object.assign(panels, QUERY_TEMPLATES)
   }
 
+  panelSources = sources
   availablePanels = panels
   return panels
 }
@@ -166,15 +190,11 @@ function populateDropdown (select, queries) {
  */
 function createControls (context, onTemplateChange, onModeChange) {
   const container = document.createElement('div')
-  container.style.marginBottom = '10px'
-  container.style.padding = '5px'
-  container.style.borderBottom = '1px solid var(--background-modifier-border)'
-  container.style.display = 'flex'
-  container.style.alignItems = 'center'
-  container.style.gap = '15px'
+  container.className = 'dot-triples-controls'
 
   // Template selector
   const templateGroup = document.createElement('div')
+  templateGroup.className = 'dot-triples-template'
   templateGroup.style.display = 'flex'
   templateGroup.style.alignItems = 'center'
 
@@ -214,6 +234,7 @@ function createControls (context, onTemplateChange, onModeChange) {
 
   const richLabel = document.createElement('label')
   richLabel.textContent = 'Rich'
+  richLabel.prepend(richCheckbox)
   richLabel.style.fontSize = '12px'
 
   // Add change handler for checkbox
@@ -224,34 +245,42 @@ function createControls (context, onTemplateChange, onModeChange) {
     }
   })
 
-  modeGroup.appendChild(richCheckbox)
   modeGroup.appendChild(richLabel)
 
-  // Refresh button
-  const refreshButton = document.createElement('button')
-  refreshButton.textContent = '🔄'
-  refreshButton.title = 'Refresh panels'
-  refreshButton.style.padding = '2px 6px'
-  refreshButton.style.fontSize = '12px'
-  refreshButton.style.background = 'var(--background-primary)'
-  refreshButton.style.border = '1px solid var(--background-modifier-border)'
-  refreshButton.style.borderRadius = '3px'
-  refreshButton.style.cursor = 'pointer'
-  refreshButton.style.opacity = '0.7'
-  refreshButton.addEventListener('mouseenter', () => refreshButton.style.opacity = '1')
-  refreshButton.addEventListener('mouseleave', () => refreshButton.style.opacity = '0.7')
+  const sourceButton = document.createElement('button')
+  sourceButton.type = 'button'
+  sourceButton.className = 'clickable-icon dot-triples-source'
+  setIcon(sourceButton, 'file-input')
+  sourceButton.addEventListener('click', async () => {
+    const path = panelSources[selectedTemplateKey]
+    if (!path) return
+    try {
+      await context.app.workspace.openLinkText(path, '', false)
+    } catch (error) {
+      new Notice(`Could not open panel source: ${error.message}`)
+    }
+  })
 
   container.appendChild(templateGroup)
   container.appendChild(modeGroup)
-  container.appendChild(refreshButton)
+  container.appendChild(sourceButton)
 
-  return { container, select, refreshButton }
+  return { container, select, sourceButton }
+}
+
+function updateSourceButton () {
+  if (!currentSourceButton) return
+  const path = panelSources[selectedTemplateKey]
+  currentSourceButton.disabled = !path
+  currentSourceButton.title = path ? `Open panel source: ${path}` : 'No source note for this panel'
+  currentSourceButton.setAttribute('aria-label', currentSourceButton.title)
 }
 
 /**
  * Render query with selected template
  */
 async function renderQuery (container, templateKey, context) {
+  updateSourceButton()
   const activeFile = context.app.workspace.getActiveFile()
   const absolutePath = activeFile ? context.app.vault.adapter.getFullPath(
     activeFile.path) : ''
@@ -268,7 +297,7 @@ async function renderQuery (container, templateKey, context) {
 
   // Apply unified token replacement to the entire markdown content
   const processedMarkdown = replaceAllTokens(cleanedMarkdown, absolutePath,
-    activeFile)
+    activeFile, context.app.vault.adapter.basePath)
 
   // Update the code block type based on rich mode
   const finalMarkdown = processedMarkdown.replace(
@@ -334,6 +363,7 @@ export async function refreshPanelQueries (context) {
     // Set the dropdown value after populating
     currentDropdownSelect.value = selectedTemplateKey
   }
+  updateSourceButton()
 }
 
 /**
@@ -349,7 +379,7 @@ async function initializeDebugPanel (container, context) {
   }
 
   // Create controls with change handlers
-  const { container: controlsContainer, select, refreshButton } = createControls(
+  const { container: controlsContainer, select, sourceButton } = createControls(
     context,
     (templateKey) => {
       renderQuery(container, templateKey, context)
@@ -359,21 +389,7 @@ async function initializeDebugPanel (container, context) {
     },
   )
 
-  // Add refresh button click handler
-  refreshButton.addEventListener('click', async () => {
-    refreshButton.textContent = '⏳'
-    refreshButton.disabled = true
-    try {
-      await refreshPanelQueries(context)
-      // Re-render current query with updated panels
-      await renderQuery(container, selectedTemplateKey, context)
-    } catch (error) {
-      console.error('Failed to refresh panels:', error)
-    } finally {
-      refreshButton.textContent = '🔄'
-      refreshButton.disabled = false
-    }
-  })
+  currentSourceButton = sourceButton
 
   container.appendChild(controlsContainer)
 
@@ -464,6 +480,7 @@ async function updateQueryContent (container, context) {
  * Main entry point - decides whether to initialize or just update content
  */
 export async function renderPanel (container, context, forceInit = false) {
+  container.classList.add('dot-triples-panel')
   // If container is empty or force init, do full initialization
   if (container.innerHTML === '' || forceInit) {
     await initializeDebugPanel(container, context)
