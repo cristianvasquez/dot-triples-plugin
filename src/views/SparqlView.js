@@ -6,6 +6,7 @@ import { renderError } from '../components/renderError.js'
 import { prettyPrint } from '../lib/prettyPrint.js'
 import { replaceAllTokens } from '../lib/templates.js'
 import { ns } from '../namespaces.js'
+import { styleEditorCode } from '../components/editorCode.js'
 
 /**
  * Vanilla JS SparqlView function to replace Vue component
@@ -107,8 +108,11 @@ async function renderResults (container, context, query, markdown, copyText, lab
   container.classList.add('dot-triples-results')
   container.replaceChildren()
   const sourcePath = context.app.workspace.getActiveFile()?.path || ''
-  const render = (text, target) => MarkdownRenderer.render(
-    context.app, text, target, sourcePath, context.plugin)
+  const render = async (text, target) => {
+    target.classList.add('markdown-rendered')
+    await MarkdownRenderer.render(context.app, text, target, sourcePath, context.plugin)
+    styleEditorCode(target)
+  }
 
   const toolbar = document.createElement('div')
   toolbar.className = 'dot-triples-results-toolbar'

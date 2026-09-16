@@ -125,16 +125,46 @@
   font-size: 0.9em;
 }
 
-.dot-triples-results pre,
-.dot-triples-results code {
+/* Match the editor, including Code Styler settings when that plugin is active. */
+.dot-triples-results .markdown-rendered pre.dot-triples-editor-code {
+  position: relative;
+  padding: 12px 0;
   font-family: var(--font-monospace);
   font-size: var(--code-size);
+  background: var(--code-styler-codeblock-background-colour, var(--code-background));
+  border-radius: var(--border-radius, var(--radius-s));
 }
 
-.dot-triples-results pre {
-  overflow-x: auto;
-  margin: 8px 0;
-  padding: 8px;
+.dot-triples-results .dot-triples-editor-code > code {
+  display: block;
+  padding: 0 !important;
+  font: inherit;
+  background: transparent;
+  white-space: pre-wrap;
+}
+
+.dot-triples-code-line {
+  display: grid;
+  grid-template-columns: var(--dot-triples-gutter-width) minmax(0, 1fr);
+  min-height: 1lh;
+}
+
+.dot-triples-code-number {
+  padding-right: 16px;
+  color: var(--code-styler-gutter-text-colour, var(--text-faint));
+  background: var(--code-styler-gutter-background-colour, transparent);
+  text-align: right;
+  user-select: none;
+}
+
+.dot-triples-code-number::before {
+  content: attr(data-line);
+}
+
+.dot-triples-code-text {
+  padding-inline: 12px 32px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .dot-triples-results-body .copy-code-button {
