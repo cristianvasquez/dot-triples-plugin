@@ -25,6 +25,7 @@
     "sparql-http-client": "^3.0.1",
     "sparql-md": "link:../../rdf/dot-triples/packages/sparql-md",
     "sparqljs": "^3.7.3",
+    "triplifier-canvas": "link:../../rdf/dot-triples/packages/triplifier-canvas",
     "triplifier-md": "link:../../rdf/dot-triples/packages/triplifier-md"
   },
   "devDependencies": {

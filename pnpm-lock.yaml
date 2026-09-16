@@ -32,6 +32,9 @@ importers:
       sparqljs:
         specifier: ^3.7.3
         version: 3.7.3
+      triplifier-canvas:
+        specifier: link:../../rdf/dot-triples/packages/triplifier-canvas
+        version: link:../../rdf/dot-triples/packages/triplifier-canvas
       triplifier-md:
         specifier: link:../../rdf/dot-triples/packages/triplifier-md
         version: link:../../rdf/dot-triples/packages/triplifier-md

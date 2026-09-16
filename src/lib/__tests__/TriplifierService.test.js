@@ -49,7 +49,38 @@ describe('TriplifierService Architecture', () => {
 
     it('should process markdown files', () => {
       expect(service.canProcess('/test/document.md')).toBe(true)
+      expect(service.canProcess('/test/Board.canvas')).toBe(true)
       expect(service.canProcess('/test/document.txt')).toBe(false)
+    })
+
+    it('should triplify canvas edges between note identities', async () => {
+      const content = JSON.stringify({
+        nodes: [
+          { id: 'a', type: 'file', file: 'people/Alice.md', x: 0, y: 0, width: 100, height: 100 },
+          { id: 'b', type: 'file', file: 'Bob.md', x: 200, y: 0, width: 100, height: 100 },
+        ],
+        edges: [{ id: 'edge', fromNode: 'a', toNode: 'b', label: 'knows' }],
+      })
+      const result = await service.triplify('/test/vault/Board.canvas', content)
+      expect(result.graphUri.value).toBe('file:///test/vault/Board.canvas')
+      expect([...result.dataset]).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          subject: expect.objectContaining({ value: 'urn:name:Alice' }),
+          predicate: expect.objectContaining({ value: 'urn:token:knows' }),
+          object: expect.objectContaining({ value: 'urn:name:Bob' }),
+        }),
+        expect.objectContaining({
+          subject: expect.objectContaining({ value: 'urn:name:Board.canvas' }),
+        }),
+      ]))
+    })
+
+    it('should reject malformed canvas JSON', async () => {
+      await expect(service.triplify('/test/Board.canvas', '{')).rejects.toThrow()
+    })
+
+    it('should skip unsupported file types', async () => {
+      expect(await service.triplify('/test/data.json', '{}')).toBeNull()
     })
 
     it('should triplify markdown content', async () => {

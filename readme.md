@@ -5,9 +5,9 @@ that uses standard RDF and SPARQL instead of a custom query language.
 
 ## What it does
 
-Dot Triples indexes your markdown files as RDF triples with
-[dot-triples](https://github.com/cristianvasquez/dot-triples) and stores them in
-a triplestore. You then query that graph from inside your notes.
+Dot Triples indexes your Markdown and Canvas files as RDF triples with [dot-triples](https://github.com/cristianvasquez/dot-triples) and stores them in a triplestore. You then query that graph from inside your notes.
+
+The embedded triplifier uses `triplifier-md` and `triplifier-canvas` from dot-triples 0.2.1. Canvas edge labels become predicates between linked notes. Canvas files are included in **Re-index vault**, **Sync current file**, and automatic indexing on open or save. Each canvas has its own `file:///.../Board.canvas` named graph. External OSG triplifier mode remains Markdown-only.
 
 You can:
 

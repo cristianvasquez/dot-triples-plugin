@@ -144,11 +144,12 @@ export class Controller {
     // Clear all data from this vault in the triplestore
     await this.triplestoreService.clearAll(vaultBaseUri)
 
-    // Process all markdown files in the vault
-    const markdownFiles = this.app.vault.getMarkdownFiles()
+    // Process only file types supported by the selected triplifier.
+    const files = this.app.vault.getFiles().filter(file =>
+      this.triplifierService.canProcess(this.app.vault.adapter.getFullPath(file.path)))
     let processedFiles = 0
 
-    for (const file of markdownFiles) {
+    for (const file of files) {
       try {
         const content = await this.app.vault.read(file)
 
