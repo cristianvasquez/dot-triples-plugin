@@ -73,6 +73,31 @@ describe('SELECT columns and queued refreshes', () => {
     }
   })
 
+  it.each([false, true])('preserves repeated actions and unbound cells in display and copy (debug=%s)', async debug => {
+    const ctx = context([])
+    ctx.controller.select = vi.fn().mockResolvedValue([
+      { resource: rdf.literal('yearly meetings'), action: rdf.literal('replace') },
+      { resource: rdf.literal('MEPs'), action: rdf.literal('replace') },
+      { resource: rdf.literal('missing action') },
+      { resource: rdf.literal('corporate bodies'), action: rdf.literal('replace') },
+    ])
+    const writeText = vi.fn().mockResolvedValue()
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    try {
+      const container = document.createElement('div')
+      await renderSparqlView('SELECT ?resource ?action WHERE { ?resource ?p ?action }', container, ctx, debug)
+      const body = container.querySelector('.dot-triples-results-body').textContent
+      expect(body).toContain('| "yearly meetings" | "replace" |')
+      expect(body).toContain('| "MEPs" | "replace" |')
+      expect(body).toContain('| "missing action" |  |')
+      expect(body).toContain('| "corporate bodies" | "replace" |')
+      container.querySelector('.dot-triples-copy').click()
+      expect(writeText).toHaveBeenCalledWith(body)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('runs only the latest pending query after a slow request', async () => {
     const ctx = context([])
     let finish

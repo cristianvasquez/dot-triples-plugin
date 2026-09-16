@@ -92,7 +92,7 @@ describe('BindingsTable', () => {
       expect(result).toContain('|  |  |')
     })
 
-    it('should not repeat values in the same column across consecutive rows',
+    it('should preserve repeated values in every row',
       () => {
         const header = ['resource', 'type']
         const rows = [
@@ -106,8 +106,8 @@ describe('BindingsTable', () => {
 
         // First data row should have both values
         expect(lines[2]).toContain('Test Value')
-        // Second data row should have empty cells (repeated values)
-        expect(lines[3]).toMatch(/\|\s*\|\s*\|/)
+        // Repeated bindings must remain visible.
+        expect(lines[3]).toBe(lines[2])
         // Third data row should have different values displayed
         expect(lines[4]).toContain('Test Value')
       })
