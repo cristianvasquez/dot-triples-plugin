@@ -108,6 +108,11 @@
   color: var(--text-muted);
 }
 
+/* Live Preview places its edit-block control over the top-right corner. */
+.markdown-source-view .cm-embed-block .dot-triples-results-toolbar {
+  padding-inline-end: 40px;
+}
+
 .dot-triples-results-toolbar button {
   padding: 2px 8px;
   height: auto;
@@ -201,6 +206,17 @@
 
 .dot-triples-results-toolbar .dot-triples-copy {
   margin-left: auto;
+  flex-shrink: 0;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--text-muted);
+}
+
+.dot-triples-results-toolbar .dot-triples-copy:hover:not(:disabled) {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
 }
 
 .dot-triples-results-toolbar .dot-triples-query-toggle {

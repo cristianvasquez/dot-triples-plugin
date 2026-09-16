@@ -1,4 +1,4 @@
-import { MarkdownRenderer, Notice } from 'obsidian'
+import { MarkdownRenderer, Notice, setIcon } from 'obsidian'
 import { Parser } from 'sparqljs'
 import { generateMarkdownTable, generateMarkdownTableRaw } from '../components/BindingsTableAsMarkdown.js'
 import { resultsToMarkdownTurtle } from '../components/turtleAsMarkdown.js'
@@ -8,18 +8,42 @@ import { replaceAllTokens } from '../lib/templates.js'
 import { ns } from '../namespaces.js'
 import { styleEditorCode } from '../components/editorCode.js'
 
+const queryBlocks = new WeakMap()
+const resultContent = new WeakMap()
+const queryRenders = new WeakMap()
+
+export async function refreshSparqlViews (container, context) {
+  await Promise.all([...container.querySelectorAll('.dot-triples-query-block')].map(block => {
+    const query = queryBlocks.get(block)
+    if (query) return renderSparqlView(query.source, block, context, query.debug)
+  }))
+}
+
 /**
  * Vanilla JS SparqlView function to replace Vue component
  * Processes osg code blocks and renders SPARQL query results
  */
 export async function renderSparqlView (
   source, container, context, debug = false) {
+  container.classList.add('dot-triples-query-block')
+  queryBlocks.set(container, { source, debug })
+  const previous = queryRenders.get(container) || Promise.resolve()
+  const pending = previous.catch(() => {}).then(() =>
+    renderSparqlViewNow(source, container, context, debug))
+  queryRenders.set(container, pending)
+  await pending
+}
+
+async function renderSparqlViewNow (source, container, context, debug) {
   try {
     // Get active file
     const activeFile = context.app.workspace.getActiveFile()
     if (!activeFile) {
       // Show simple message instead of throwing error
-      container.innerHTML = '<p>No active file</p>'
+      if (resultContent.get(container) !== 'no-active-file') {
+        container.innerHTML = '<p>No active file</p>'
+        resultContent.set(container, 'no-active-file')
+      }
       return
     }
 
@@ -52,7 +76,12 @@ export async function renderSparqlView (
     console.error('SPARQL View error:', error)
     
     // Always render error inline in the same place as SPARQL results
-    await renderError(error, container, context)
+    const signature = JSON.stringify(['error', error.message || String(error)])
+    if (resultContent.get(container) === signature) return
+    const replacement = document.createElement('div')
+    await renderError(error, replacement, context)
+    container.replaceChildren(...replacement.childNodes)
+    resultContent.set(container, signature)
   }
 }
 
@@ -106,8 +135,10 @@ ${turtle}
 
 async function renderResults (container, context, query, markdown, copyText, label, count) {
   container.classList.add('dot-triples-results')
-  container.replaceChildren()
   const sourcePath = context.app.workspace.getActiveFile()?.path || ''
+  const signature = JSON.stringify([sourcePath, query, markdown, copyText, label, count])
+  if (resultContent.get(container) === signature) return
+  const replacement = document.createElement('div')
   const render = async (text, target) => {
     target.classList.add('markdown-rendered')
     await MarkdownRenderer.render(context.app, text, target, sourcePath, context.plugin)
@@ -137,8 +168,8 @@ async function renderResults (container, context, query, markdown, copyText, lab
   toolbar.appendChild(title)
   const copy = document.createElement('button')
   copy.type = 'button'
-  copy.className = 'dot-triples-copy'
-  copy.textContent = 'Copy'
+  copy.className = 'clickable-icon dot-triples-copy'
+  setIcon(copy, 'copy')
   copy.title = 'Copy query results'
   copy.setAttribute('aria-label', copy.title)
   copy.disabled = count === 0
@@ -151,11 +182,13 @@ async function renderResults (container, context, query, markdown, copyText, lab
     }
   })
   toolbar.appendChild(copy)
-  container.appendChild(toolbar)
-  container.appendChild(queryContent)
+  replacement.appendChild(toolbar)
+  replacement.appendChild(queryContent)
   await render(`\`\`\`sparql\n${query}\n\`\`\``, queryContent)
   const body = document.createElement('div')
   body.className = 'dot-triples-results-body'
-  container.appendChild(body)
+  replacement.appendChild(body)
   await render(markdown, body)
+  container.replaceChildren(...replacement.childNodes)
+  resultContent.set(container, signature)
 }

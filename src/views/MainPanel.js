@@ -1,5 +1,6 @@
 import { pathToFileURL } from 'canonical-md'
 import { DropdownComponent, MarkdownRenderer, Notice, setIcon } from 'obsidian'
+import { refreshSparqlViews } from './SparqlView.js'
 import { QUERY_TEMPLATES } from '../queries.js'
 import { replaceAllTokens, removeFrontmatter } from '../lib/templates.js'
 
@@ -11,6 +12,8 @@ let panelSources = {}
 let currentSourceButton = null
 let panelsLoaded = false // Track if panels have been loaded
 let currentDropdownSelect = null // Reference to current dropdown for refresh
+const panelRenders = new WeakMap()
+const panelContent = new WeakMap()
 
 /**
  * Load available query templates using Obsidian metadata (tag-based filtering)
@@ -315,23 +318,28 @@ async function renderMarkdown (container, markdown, context) {
   const activeFile = context.app.workspace.getActiveFile()
   const sourcePath = activeFile ? activeFile.path : ''
 
-  // Clear only the query content, not the selector
-  const queryContainer = container.querySelector('.query-content') || (() => {
-    const div = document.createElement('div')
-    div.className = 'query-content'
-    container.appendChild(div)
-    return div
-  })()
+  // Serialize updates so a slow earlier render cannot replace a newer one.
+  const previous = panelRenders.get(container) || Promise.resolve()
+  const pending = previous.catch(() => {}).then(async () => {
+    const queryContainer = container.querySelector('.query-content')
+    const last = queryContainer && panelContent.get(queryContainer)
+    if (last?.markdown === markdown && last.sourcePath === sourcePath) {
+      await refreshSparqlViews(queryContainer, context)
+      return
+    }
 
-  queryContainer.innerHTML = ''
-
-  await MarkdownRenderer.render(
-    context.app,
-    markdown,
-    queryContainer,
-    sourcePath,
-    context.plugin,
-  )
+    // Keep the current content visible until its replacement is ready.
+    const replacement = document.createElement('div')
+    replacement.className = 'query-content'
+    await MarkdownRenderer.render(
+      context.app, markdown, replacement, sourcePath, context.plugin,
+    )
+    panelContent.set(replacement, { markdown, sourcePath })
+    if (queryContainer) queryContainer.replaceWith(replacement)
+    else container.appendChild(replacement)
+  })
+  panelRenders.set(container, pending)
+  await pending
 }
 
 /**
