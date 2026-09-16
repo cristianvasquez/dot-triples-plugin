@@ -46,3 +46,50 @@ describe('query results', () => {
     expect(container.textContent).toContain('No results found.')
   })
 })
+
+
+describe('SELECT columns and queued refreshes', () => {
+  const selectQuery = 'SELECT ?value ?optional WHERE { ?s ?p ?value OPTIONAL { ?s <urn:optional> ?optional } }'
+
+  it.each([false, true])('includes bindings from later rows in display and copy (debug=%s)', async debug => {
+    const ctx = context([])
+    ctx.controller.select = vi.fn().mockResolvedValue([
+      {},
+      { value: rdf.literal('first') },
+      { optional: rdf.literal('later'), value: rdf.literal('second') },
+    ])
+    const writeText = vi.fn().mockResolvedValue()
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    try {
+      const container = document.createElement('div')
+      await renderSparqlView(selectQuery, container, ctx, debug)
+      const body = container.querySelector('.dot-triples-results-body').textContent
+      expect(body).toContain('| value | optional |')
+      expect(body).toContain('later')
+      container.querySelector('.dot-triples-copy').click()
+      expect(writeText).toHaveBeenCalledWith(body)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('runs only the latest pending query after a slow request', async () => {
+    const ctx = context([])
+    let finish
+    ctx.controller.select = vi.fn().mockResolvedValue([{ value: rdf.literal('latest') }])
+      .mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
+    const container = document.createElement('div')
+    const first = renderSparqlView(selectQuery, container, ctx)
+    await vi.waitFor(() => expect(finish).toBeTypeOf('function'))
+    const pending = Array.from({ length: 8 }, (_, i) =>
+      renderSparqlView(`${selectQuery} # update ${i}`, container, ctx))
+    expect(ctx.controller.select).toHaveBeenCalledTimes(1)
+    finish([])
+    await Promise.all([first, ...pending])
+    expect(ctx.controller.select).toHaveBeenCalledTimes(2)
+    expect(ctx.controller.select.mock.lastCall[0]).toContain('# update 7')
+    expect(container.textContent).toContain('latest')
+    await renderSparqlView(selectQuery, container, ctx)
+    expect(ctx.controller.select).toHaveBeenCalledTimes(3)
+  })
+})

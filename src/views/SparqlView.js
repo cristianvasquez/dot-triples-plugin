@@ -7,6 +7,7 @@ import { prettyPrint } from '../lib/prettyPrint.js'
 import { replaceAllTokens } from '../lib/templates.js'
 import { ns } from '../namespaces.js'
 import { styleEditorCode } from '../components/editorCode.js'
+import { queueLatest } from '../lib/queueLatest.js'
 
 const queryBlocks = new WeakMap()
 const resultContent = new WeakMap()
@@ -27,11 +28,8 @@ export async function renderSparqlView (
   source, container, context, debug = false) {
   container.classList.add('dot-triples-query-block')
   queryBlocks.set(container, { source, debug })
-  const previous = queryRenders.get(container) || Promise.resolve()
-  const pending = previous.catch(() => {}).then(() =>
+  await queueLatest(queryRenders, container, () =>
     renderSparqlViewNow(source, container, context, debug))
-  queryRenders.set(container, pending)
-  await pending
 }
 
 async function renderSparqlViewNow (source, container, context, debug) {
@@ -96,7 +94,7 @@ async function renderSelectResults (results, container, context, debug, query) {
     markdown += 'No results found.\n'
   } else {
     // Convert results to table format - both controllers now return plain objects
-    const header = Object.keys(results[0])
+    const header = [...new Set(results.flatMap(row => Object.keys(row)))]
     
     const rows = results.map(row => {
       return header.map(key => {

@@ -114,4 +114,20 @@ describe('panel refresh', () => {
     await update
     expect(container.querySelector('.dot-triples-results-body').textContent).toContain('second')
   })
+
+  it('coalesces panel updates while a query is pending', async () => {
+    await renderPanel(container, context)
+    context.controller.select.mockClear()
+    let finish
+    context.controller.select.mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
+    const first = renderPanel(container, context)
+    await vi.waitFor(() => expect(finish).toBeTypeOf('function'))
+    const pending = Array.from({ length: 8 }, () => renderPanel(container, context))
+    results = [{ value: rdf.literal('latest') }]
+    finish([])
+    await Promise.all([first, ...pending])
+    expect(context.controller.select).toHaveBeenCalledTimes(2)
+    expect(container.querySelector('.dot-triples-results-body').textContent).toContain('latest')
+  })
+
 })

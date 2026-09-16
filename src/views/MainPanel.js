@@ -1,6 +1,7 @@
 import { pathToFileURL } from 'canonical-md'
 import { DropdownComponent, MarkdownRenderer, Notice, setIcon } from 'obsidian'
 import { refreshSparqlViews } from './SparqlView.js'
+import { queueLatest } from '../lib/queueLatest.js'
 import { QUERY_TEMPLATES } from '../queries.js'
 import { replaceAllTokens, removeFrontmatter } from '../lib/templates.js'
 
@@ -318,9 +319,8 @@ async function renderMarkdown (container, markdown, context) {
   const activeFile = context.app.workspace.getActiveFile()
   const sourcePath = activeFile ? activeFile.path : ''
 
-  // Serialize updates so a slow earlier render cannot replace a newer one.
-  const previous = panelRenders.get(container) || Promise.resolve()
-  const pending = previous.catch(() => {}).then(async () => {
+  // Keep one running update and only the latest pending update.
+  await queueLatest(panelRenders, container, async () => {
     const queryContainer = container.querySelector('.query-content')
     const last = queryContainer && panelContent.get(queryContainer)
     if (last?.markdown === markdown && last.sourcePath === sourcePath) {
@@ -338,8 +338,6 @@ async function renderMarkdown (container, markdown, context) {
     if (queryContainer) queryContainer.replaceWith(replacement)
     else container.appendChild(replacement)
   })
-  panelRenders.set(container, pending)
-  await pending
 }
 
 /**
